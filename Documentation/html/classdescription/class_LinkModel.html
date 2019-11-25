@@ -1,0 +1,126 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>连杆模型LinkModel类 &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="肢体模型LimbModel类" href="class_LimbModel.html" />
+    <link rel="prev" title="定义的类及类间关系" href="relation.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="class_LimbModel.html" title="肢体模型LimbModel类"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="relation.html" title="定义的类及类间关系"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" >四足机器人开发者文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="relation.html" accesskey="U">定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="relation.html"
+                        title="previous chapter">定义的类及类间关系</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="class_LimbModel.html"
+                        title="next chapter">肢体模型LimbModel类</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="linkmodel">
+<span id="linkmodel-class-label"></span><h1>连杆模型LinkModel类<a class="headerlink" href="#linkmodel" title="Permalink to this headline">¶</a></h1>
+<p>连杆由LinkModel类表示，包含连杆长度(连杆长度是指从一个旋转关节轴线至另一个旋转关节轴线的距离)、重心位置等属性，通常除了连杆长度已知外，其它参数实际中很难得到。当前只有连杆长度参与了实际计算，其它参数可任意设置。
+依赖于头文件 <strong>&lt;ignition/math.hh&gt;</strong>。</p>
+<div class="section" id="id1">
+<h2>LinkModel类成员函数<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="n">LinkModel</span><span class="p">(</span><span class="kt">double</span> <span class="n">length</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="kt">double</span> <span class="n">cop</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="kt">double</span> <span class="n">mass</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Matrix3d</span> <span class="n">inertial</span> <span class="o">=</span> <span class="n">Matrix3d</span><span class="o">::</span><span class="n">Identity</span> <span class="p">);</span>
+</pre></div>
+</div>
+<p>构造函数进行简单的初始化操作，当前只需要准确对length赋值即可。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">ModifyLength</span><span class="p">(</span><span class="kt">double</span> <span class="n">length</span><span class="p">);</span>
+        <span class="kt">double</span> <span class="nf">GetLength</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>修改和获得连杆长度。</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">其它未用到的类成员函数并未列出，该类的定义目前在LimbModel类头文件中。</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="class_LimbModel.html" title="肢体模型LimbModel类"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="relation.html" title="定义的类及类间关系"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" >四足机器人开发者文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="relation.html" >定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

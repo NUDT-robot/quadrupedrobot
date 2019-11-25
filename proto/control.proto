@@ -1,0 +1,10 @@
+syntax = "proto3";
+package QRcommand.msgs;
+
+message Control
+{
+	repeated int32 mode = 1; // mode selection in choosing between positon and torque
+	repeated double position = 2; //target postions of joints
+	repeated double torque = 3;	//target torques of joints
+	int32 type = 4; //type for torque control or position control
+}

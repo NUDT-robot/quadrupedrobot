@@ -1,0 +1,59 @@
+.. 数学类文档
+  
+数学类文档
+=======================================
+
+要实现机器人功能，需要借助数学类,除特殊声明外，默认头文件在include/ds/文件夹中。
+
+.. _TransProcGenerator-class-label:
+
+过渡过程，TransProcGenerator类
+-------------------------------------------------
+
+“过渡过程”是控制领域的术语，本质上是在初始值与目标值间进行插值，TransProcGenerator类提供了该实现。
+
+TransProcGenerator类成员变量
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ private:
+    int type = 1;
+
+插值类型，默认为线性插值。当前支持的插值类型如下：
+type = 1，线性插值。
+
+.. code-block:: c++
+
+ private:
+    double input = 0;
+    double target  = 0;
+    int pointsnum  = 0;
+    double stepvalue = 0;
+    double value = 0;
+
+input表示输入值，target为目标值，pointsnum表示插值点数量，stepvalue是相邻插值点步长，value是输出值。
+
+.. code-block:: c++
+
+ public:
+    TransProcGenerator() {}
+
+构造函数当前为空。
+
+.. code-block:: c++
+
+ public:
+    void Init(int gtype, double ginput, double gtarget, int gpointsnum);
+
+初始化发生器(generator)，gtype为插值类型，ginput为输入值，gtarget是目标值，gpointsnum指定插值点数量。每次调用该函数，发生器的值将会被重置。
+    
+.. code-block:: c++
+
+ public:
+    double generator();
+
+该函数是一个发生器，返回由Init函数初始化的插值点。为了依次得到N个插值点，调用该函数N次即可。
+
+
+

@@ -1,0 +1,52 @@
+syntax = "proto2";
+package QRCS.msgs;
+
+message Vector3d
+{
+  required double x = 1;
+  required double y = 2;
+  required double z = 3;
+}
+message Wrench
+{
+  required Vector3d force        = 1;
+  required Vector3d torque       = 2;
+  optional Vector3d force_offset = 3;
+}
+message JointWrench
+{
+  required string body_1_name = 1;
+  required uint32 body_1_id   = 2;
+  required string body_2_name = 3;
+  required uint32 body_2_id   = 4;
+
+  required Wrench body_1_wrench = 5;
+  required Wrench body_2_wrench = 6;
+}
+message Time
+{
+  required int32 sec = 1;
+  required int32 nsec = 2;
+}
+message Contact
+{
+  required string collision1 = 1;
+  required string collision2 = 2;
+
+  repeated Vector3d position  = 3;
+  repeated Vector3d normal    = 4;
+  repeated double depth       = 5;
+  repeated JointWrench wrench = 6;
+
+  required Time time         = 7;
+  required string world      = 8;
+}
+message Contacts
+{
+  repeated Contact contact   = 1;
+  required Time time         = 2;
+}
+message ContactSensors
+{
+	repeated Contacts contacts = 1;
+}

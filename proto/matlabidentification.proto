@@ -1,0 +1,9 @@
+syntax = "proto3";
+package matlab.msgs;
+
+message Identification
+{
+	repeated double MatElement = 1;
+	repeated double torque = 2;
+	repeated double contactforce = 3;
+}

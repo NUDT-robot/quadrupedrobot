@@ -1,0 +1,229 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>数据结构类 &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="数学类文档" href="class_TransProcGenerator.html" />
+    <link rel="prev" title="四足机器人类" href="../class_QuadRobot.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="class_TransProcGenerator.html" title="数学类文档"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../class_QuadRobot.html" title="四足机器人类"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../docDevel.html" >ISROBOT四足机器人程序开发文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../relation.html" accesskey="U">定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../class_QuadRobot.html"
+                        title="previous chapter">四足机器人类</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="class_TransProcGenerator.html"
+                        title="next chapter">数学类文档</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>数据结构类<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>数据结构类定义了机器人代码中常用的数据结构,除特殊声明外，默认头文件在include/ds/文件夹中。</p>
+<div class="section" id="template-typename-tp-class-treenode">
+<span id="treenode-class-label"></span><h2>template &lt;typename _Tp&gt; class TreeNode模板类<a class="headerlink" href="#template-typename-tp-class-treenode" title="Permalink to this headline">¶</a></h2>
+<p>TreeNode模板类定义了树结构中的节点，主要成员变量包含一个指向父节点的指针parent、一个指向若干子节点的容器children以及本节点对应的数据。通过枚举NodeType来表征该节点的属性，默认情况下节点为CHILD属性。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="n">NodeType</span>
+<span class="p">{</span>
+   <span class="n">ROOT</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+   <span class="n">CHILD</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+   <span class="n">ANSWER</span> <span class="o">=</span><span class="mi">2</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>ROOT代表根节点，除根节点外都为CHILD节点，叶子节点被赋予ANSWER属性。</p>
+<div class="section" id="treenode">
+<h3>TreeNode成员函数<a class="headerlink" href="#treenode" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">SetNodeType</span><span class="p">(</span><span class="n">NodeType</span> <span class="n">newtype</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>设置节点类型。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="n">TreeNode</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">nodeparent</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>构造函数，nodeparent为分配给该节点的父指针。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="o">~</span><span class="n">TreeNode</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>析构函数，删除所有子节点指针指向内存，并清空存储子节点的容器。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">SetParent</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">newparent</span><span class="p">);</span>
+        <span class="n">TreeNode</span><span class="o">*</span> <span class="nf">GetParent</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>设置和得到本节点的父节点，如果当前已有父节点，那么将会从当前父节点的子节点列表中删除本节点后，设置newparent为新父节点。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">SetData</span><span class="p">(</span><span class="n">_Tp</span> <span class="n">value</span><span class="p">);</span>
+        <span class="k">const</span> <span class="n">_Tp</span><span class="o">&amp;</span> <span class="n">GetData</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>设置和得到本节点数据。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TreeNode</span><span class="o">*&gt;&amp;</span> <span class="n">GetChildren</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>获得子节点容器。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="n">NodeType</span> <span class="n">GetNodeType</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>获得本节点类型。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">SetType</span><span class="p">(</span><span class="n">NodeType</span> <span class="n">newtype</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>设置本节点类型，当前只是简单地调用了SetNodeType私有成员函数。</p>
+</div>
+</div>
+<div class="section" id="template-typename-tp-class-tree">
+<span id="tree-class-label"></span><h2>template &lt;typename _Tp&gt; class Tree类<a class="headerlink" href="#template-typename-tp-class-tree" title="Permalink to this headline">¶</a></h2>
+<p>完整的树由Tree类的实例实现，该类拥有一个指向树根节点的TreeNode&lt;_Tp&gt;* root变量，该类实例化时会自动生成一个树根节点。</p>
+<div class="section" id="tree">
+<h3>Tree成员函数<a class="headerlink" href="#tree" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="n">Tree</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>创建树实例时，构造函数会自动生成一个树根节点。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="o">~</span><span class="n">Tree</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>析构函数会释放所有树内节点占有的内存资源。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="n">TreeNode</span><span class="o">&lt;</span><span class="n">_Tp</span><span class="o">&gt;*</span> <span class="n">GetRoot</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数返回指向根节点的指针。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="n">TreeNode</span><span class="o">&lt;</span><span class="n">_Tp</span><span class="o">&gt;*</span> <span class="n">AddNode</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">&lt;</span><span class="n">_Tp</span><span class="o">&gt;*</span> <span class="n">parent</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>向树中增加一个节点，其父节点为parent。函数返回值是一个指向新添加节点的指针，若parent为空，则会提示增加节点失败并返回NULL。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">ClearTree</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>调用该函数会清除所有树内除根节点外的所有子节点，并释放子节点内存。</p>
+</div>
+</div>
+<div class="section" id="inveranswer">
+<span id="inveranswer-class-label"></span><h2>InverAnswer类<a class="headerlink" href="#inveranswer" title="Permalink to this headline">¶</a></h2>
+<p>该类随LimbModel类在同一文件中声明，继承自Tree&lt;double&gt;类，主要用来保存逆运动学的所有结果，通过保存每个解节点(叶子节点和具有 <a class="reference internal" href="#treenode-class-label"><span class="std std-ref">NodeType::ANSWER</span></a> 属性的节点)并向上追溯父节点来得到所有解。</p>
+<div class="section" id="id2">
+<h3>InverAnswer类成员函数<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="n">InverAnswer</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>当前为空。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="o">~</span><span class="n">InverAnswer</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>当前为空。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">FindAnswer</span><span class="p">(</span> <span class="n">TreeNode</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;*</span> <span class="n">parent</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>该函数仅为内部实现使用，它从parent指向的节点开始进行深度优先搜索，如果搜索到的节点为叶子节点并且具有 <a class="reference internal" href="#treenode-class-label"><span class="std std-ref">NodeType::ANSWER</span></a> 属性,那么就将该节点加入到存放解的容器中。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">GetAnswer</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Vector3d</span><span class="o">&gt;&amp;</span> <span class="n">answer</span><span class="p">,</span> <span class="k">const</span> <span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">position</span><span class="p">,</span> <span class="kt">double</span> <span class="n">length</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kt">double</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">0.0001</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>该函数首先通过FindAnswer找到所有可能的解，由于逆运动学计算过程中方程并不与原方程等价，因此需要对解进行验证。利用position提供的足端位置和length[3]提供的连杆几何参数进行正运动学计算，如果与position向量的每个分量误差都小于tol，那么认定该解为逆运动学解并被放入answer容器中。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+        <span class="kt">void</span> <span class="n">ClearInvAns</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>调用该函数会清空当前除了根节点外的所有树节点，并清空解容器。</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="class_TransProcGenerator.html" title="数学类文档"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../class_QuadRobot.html" title="四足机器人类"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../docDevel.html" >ISROBOT四足机器人程序开发文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../relation.html" >定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

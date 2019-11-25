@@ -1,0 +1,31 @@
+.. 连杆模型LinkModel类文档
+  
+.. _LinkModel-class-label:
+
+连杆模型LinkModel类
+=======================================
+
+连杆由LinkModel类表示，包含连杆长度(连杆长度是指从一个旋转关节轴线至另一个旋转关节轴线的距离)、重心位置等属性，通常除了连杆长度已知外，其它参数实际中很难得到。当前只有连杆长度参与了实际计算，其它参数可任意设置。
+依赖于头文件 **<ignition/math.hh>**。
+
+LinkModel类成员函数
+---------------------------------------
+
+.. code-block:: c++
+
+	public:
+		LinkModel(double length = 0.1, double cop = 0.05, double mass = 1, Matrix3d inertial = Matrix3d::Identity );
+
+构造函数进行简单的初始化操作，当前只需要准确对length赋值即可。
+
+.. code-block:: c++
+
+	public:
+		void ModifyLength(double length);
+		double GetLength();
+
+修改和获得连杆长度。
+
+.. note::
+    其它未用到的类成员函数并未列出，该类的定义目前在LimbModel类头文件中。
+

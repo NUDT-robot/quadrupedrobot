@@ -1,0 +1,144 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>数学类文档 &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="代码结构与移植" href="../../Portable/item.html" />
+    <link rel="prev" title="数据结构类" href="class_TreeNode.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../Portable/item.html" title="代码结构与移植"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="class_TreeNode.html" title="数据结构类"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../docDevel.html" >四足机器人开发者文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../relation.html" accesskey="U">定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="class_TreeNode.html"
+                        title="previous chapter">数据结构类</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../../Portable/item.html"
+                        title="next chapter">代码结构与移植</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>数学类文档<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>要实现机器人功能，需要借助数学类,除特殊声明外，默认头文件在include/ds/文件夹中。</p>
+<div class="section" id="transprocgenerator">
+<span id="transprocgenerator-class-label"></span><h2>过渡过程，TransProcGenerator类<a class="headerlink" href="#transprocgenerator" title="Permalink to this headline">¶</a></h2>
+<p>“过渡过程”是控制领域的术语，本质上是在初始值与目标值间进行插值，TransProcGenerator类提供了该实现。</p>
+<div class="section" id="id2">
+<h3>TransProcGenerator类成员变量<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">int</span> <span class="n">type</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>插值类型，默认为线性插值。当前支持的插值类型如下：
+type = 1，线性插值。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">input</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">target</span>  <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+   <span class="kt">int</span> <span class="n">pointsnum</span>  <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">stepvalue</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>input表示输入值，target为目标值，pointsnum表示插值点数量，stepvalue是相邻插值点步长，value是输出值。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">TransProcGenerator</span><span class="p">()</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>构造函数当前为空。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">Init</span><span class="p">(</span><span class="kt">int</span> <span class="n">gtype</span><span class="p">,</span> <span class="kt">double</span> <span class="n">ginput</span><span class="p">,</span> <span class="kt">double</span> <span class="n">gtarget</span><span class="p">,</span> <span class="kt">int</span> <span class="n">gpointsnum</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>初始化发生器(generator)，gtype为插值类型，ginput为输入值，gtarget是目标值，gpointsnum指定插值点数量。每次调用该函数，发生器的值将会被重置。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">generator</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数是一个发生器，返回由Init函数初始化的插值点。为了依次得到N个插值点，调用该函数N次即可。</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../Portable/item.html" title="代码结构与移植"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="class_TreeNode.html" title="数据结构类"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../docDevel.html" >四足机器人开发者文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../relation.html" >定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

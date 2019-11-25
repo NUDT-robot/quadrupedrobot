@@ -1,0 +1,575 @@
+.. ISROBOT四足机器人QuadRobot类文档
+
+.. _QuadRobot-class-label:
+  
+四足机器人类
+=======================================
+
+四足机器人类QuadRobot主要由4个 :ref:`LinkModel类 <LinkModel-class-label>` m_steptime对象和一个IMU传感器类组成，负责处理传感器信息、实现步态算法、发送控制指令等。有关模型的描述与推导请参考文档 :ref:`math-doc-label`。
+
+.. _QuadRobot-class-member-label:
+
+QuadRobot类成员变量
+-------------------------------------------------
+
+.. code-block:: c++
+
+ public:
+	LimbModel limb_frontleft;
+	LimbModel limb_frontright;
+	LimbModel limb_backleft;
+	LimbModel limb_backright;
+ private:
+	Sensor_INS m_sensorINS;
+ 
+ friend class Sensor_INS;
+
+该类包含四个肢体类对象和一个惯性导航系统类传感器(INS)对象。
+
+.. _INV_KIN_SOLUTION_TYPE-member-label:
+
+功能型成员变量
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ public:
+    enum INV_KIN_SOLUTION_TYPE
+    {
+        MINI_DISTANCE = 0,
+        MANUAL = 1
+    };
+
+该枚举类型为求解逆运动学时提供两种选择：MINI_DISTANCE自动选择与当前三个关节角组成的向量2-范数最小解，MANUAL选项将向控制台输出所有解，让用户选择所需解。
+
+.. code-block:: c++
+
+ public:
+    enum ROBOT_STATE
+    {
+        STOP = 0,
+        WALK = 1,
+        TROT = 2,
+        RUN = 3,
+        JUMP = 4,
+        IDENTIFICATION = 99,
+    };
+
+该枚举类型指出了当前机器人的状态，在不同状态下，机器人执行不同的任务。需要添加额外功能时，应该在此增加枚举项。
+
+.. code-block:: c++
+
+ public:
+    enum CONTROL_MODE
+    {
+        POSITION = 1,
+        TORQUE = 2
+    };
+
+该枚举类型对应关节的控制模式。
+
+.. code-block:: c++
+
+ public:
+    struct QRMATH
+    {
+        TransProcGenerator linearTPG[12];
+    }qrmath;
+
+实现机器人算法需要相关数学类辅助，所有数学类应包含于QRMATH结构体中。当前具体内容包含如下：
+ :ref:`TransProcGenerator <TransProcGenerator-class-label>` 是过渡过程发生器。
+    
+状态型成员变量
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ private:
+    bool m_ready =false;
+
+该变量指示机器人是否可以正常动作，当前是在得到传输回的关节角信息后，将该变量置为True。
+
+.. code-block:: c++
+
+ private:
+    bool m_SyncLock = false;
+
+同步锁变量。
+
+.. code-block:: c++
+
+ private:
+    double m_steptime;
+    double m_factorTime;
+
+m_steptime用于指定时间步长，该步长当前用来计算速度、加速度。m_factorTime实际上是m_steptime的倒数，仅用于略微提高计算速度。
+
+.. code-block:: c++
+
+ private:
+    double m_expheight = 0;
+
+机器人的期望高度，这个高度当前是指从足端接触点在肢体坐标系中的Z坐标值。
+
+.. code-block:: c++
+
+ private:
+    double m_exp_vel = 0;
+
+机器人躯干质心的期望速度。
+
+.. code-block:: c++
+
+ private:
+    ROBOT_STATE robot_state = ROBOT_STATE::STOP;
+
+该枚举变量指示机器人的当前状态，默认为停止状态。
+
+.. code-block:: c++
+
+ private:
+	ulong m_TimeCounter = 0;
+
+m_TimeCounter是一个内部时间计数器，用于与真实/仿真机器人同步，它实际上指示了更新的步数。Simulation time = m_steptime*m_TimeCounter。
+
+运动学成员变量
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ private:
+    double m_roll = 0;
+    double m_pitch =0;
+    double m_yaw = 0;
+
+机器人躯干的姿态角，单位rad。关于姿态的详细描述和数学推导请参考文档 :ref:`math-doc-label`。
+
+.. code-block:: c++
+
+ private:
+    Vector3d m_angleVel;
+
+机器人躯干的角速度向量。
+
+.. code-block:: c++
+
+ private:
+    Vector3d m_accVel;
+
+机器人躯干的加速度向量，应根据惯性导航系统(INS)的数据赋值。
+
+.. code-block:: c++
+
+ private:
+    Vector3d m_velocity;
+
+机器人躯干的速度向量，实际上是惯性导航系统(INS)测量点的速度。在导航应用中，INS与本体估计应协同考虑来给这个变量赋值。
+
+.. code-block:: c++
+
+ private:
+    Vector3d m_position;
+
+机器人的位置向量，实际上是惯性导航系统(INS)测量点的位置。在导航应用中，INS与本体估计应协同考虑来给这个变量赋值。
+
+.. code-block:: c++
+
+ private:
+    Vector3d limborg_frontleft;
+    Vector3d limborg_frontright;
+    Vector3d limborg_backleft;
+    Vector3d limborg_backright;
+
+4个肢体在机器人躯干坐标系中的位置向量。
+
+动力学成员变量
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ private:
+    bool m_bodyCOMValid = 0;
+    Vector3d m_bodyCOM;
+
+重心位置相关变量m_bodyCOMValid指示当前质心位置数据是否可用，m_bodyCOM指定质心位置。
+
+.. code-block:: c++
+
+ public:
+    class Wrench
+    {
+    public:
+        Vector3d force;
+        Vector3d torque;
+    };
+
+Wrench类包含了一个力向量和一个力矩向量，"Wrench"定义来自于文献。
+
+.. code-block:: c++
+
+ public:
+    vector<Wrench> fl_Jwrench;
+    vector<Wrench> fr_Jwrench;
+    vector<Wrench> bl_Jwrench;
+    vector<Wrench> br_Jwrench;
+
+四个肢体的关节Wrench容器，容器数据保存顺序依次为关节角1～3。Wrench向量相对于子坐标系，关节Wrench为父对子的Wrench。变量命名含义，f: front, b: back, l: left, r: right。
+
+.. code-block:: c++
+
+ public:
+    Wrench  fl_Cwrenchraw, fr_Cwrenchraw, bl_Cwrenchraw, br_Cwrenchraw;
+    Wrench  fl_Cwrench, fr_Cwrench, bl_Cwrench, br_Cwrench;
+
+接触力Wrench，变量命名含义，f: front, b: back, l: left, r: right。xx_Cwrenchraw表示从传感器(或仿真环境)中得到的接触力，xx_Cwrench是利用xx_Cwrenchraw进行滤波计算后的结果。
+
+控制型成员变量
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ private:
+	short ctrl_modesel[12];
+	double ctrl_jointsPos[12];
+	double ctrl_jointsTor[12];
+
+四足机器人一共包含4个肢体，每个肢体3个关节，共12个关节。ctrl_modesel[12]表示这12个关节的控制模式，ctrl_jointsPos[12]表示位置位控制的目标位置，ctrl_jointsTor[12]表示力控中施加的力。顺序为fl的1、2、3关节, fr的1、2、3关节, bl的1、2、3关节和br的1、2、3关节。
+    
+通信型成员变量
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+通信当前采用IGNITION库，消息类型均由Google Protobuf生成，详细内容可参考 https://ignitionrobotics.org 和 https://developers.google.cn/protocol-buffers/docs/cpptutorial。
+
+.. code-block:: c++
+
+ private:
+    ignition::transport::Node jointsPositionNode;
+
+关节位置通信节点。
+
+.. code-block:: c++
+
+ private:
+    ignition::transport::Node jointSensorNode;
+
+关节力通信节点。
+
+.. code-block:: c++
+
+ private:
+    ignition::transport::Node contactFLSensorNode;
+    ignition::transport::Node contactFRSensorNode;
+    ignition::transport::Node contactBLSensorNode;
+    ignition::transport::Node contactBRSensorNode;
+
+四个足端接触力通信节点。
+
+.. code-block:: c++
+
+ private:
+    ::matlab::msgs::Identification matlabIdentMsg;
+    ignition::transport::Node matlabNode;
+    ignition::transport::Node::Publisher pubMatlab;
+ public:
+    bool transfer_contact_force = 0;
+
+Matlab通信节点及相关变量。
+
+.. code-block:: c++
+
+ private:
+    ::QRcommand::msgs::Control controlMsg;
+    ignition::transport::Node controlNode;
+    ignition::transport::Node::Publisher pubControl;
+    
+控制命令通信节点和消息变量。
+
+QuadRobot类成员函数
+-------------------------------------------------
+
+.. code-block:: c++
+
+ private:
+    void SetReady(bool ready );
+
+设置机器人是否已经可以工作，如果可以，应设置ready为True，否则为False。
+
+.. code-block:: c++
+
+ private:
+    void InitializeETP_TORQUE();
+
+初始化期望高度为当前实际高度，避免产生突兀动作。
+
+.. code-block:: c++
+
+ private:
+    void ConstructModel();
+
+为机器人构建初始模型，该函数在构造函数中被调用。主要用来设置时间步长、确定肢体原点位置、肢体连杆参数、建立通信节点以及初始化必要变量等。
+
+.. code-block:: c++
+
+ private:
+    void AddTime();
+
+该函数应在每时间步中被调用从而记录运行次数。
+
+.. code-block:: c++
+
+ private:
+    inline void SetAttitude(Vector3d attitude);
+
+设置机器人躯干姿态角函数。
+
+.. code-block:: c++
+
+ private:
+    void ProcessJointsPositionData(const ::QRsensor::msgs::JointsPosition& positiondata);
+
+这是关节位置通信节点回调函数，将接收到的关节位置传递给机器人。
+
+.. code-block:: c++
+
+ private:
+    void ProcessJointSensorsData(const ::QRsensor::msgs::AllJointSensors&  jointdata);
+
+这是关节力通信节点回调函数，将接收到的关节力/力矩传递给机器人。
+
+.. code-block:: c++
+
+ private:
+    void ProcessFLContactSensorsData(const gazebo::msgs::Contacts&  contactdata);
+    void ProcessFRContactSensorsData(const gazebo::msgs::Contacts&  contactdata);
+    void ProcessBLContactSensorsData(const gazebo::msgs::Contacts&  contactdata);
+    void ProcessBRContactSensorsData(const gazebo::msgs::Contacts&  contactdata);
+    void AnalyzeContactsMessage(const gazebo::msgs::Contacts&  contactdata, Vector3d& out_totalforce, Vector3d& out_totaltorque);
+
+这是4个足端接触力通信节点回调函数，将接收到的接触力传递给机器人。其中，AnalyzeContactsMessage函数用来完成对Gazebo中接触力的分析计算。
+
+.. code-block:: c++
+
+ private:
+    inline void SetControlMode(int limbn, int thetan, CONTROL_MODE newmode)
+    {
+        if(limbn > 4 || limbn <= 0 || thetan > 3 || thetan <=0)
+        {
+            cout << "Wrong index in function SetControlMode ! Nothing done !" <<endl;
+            return;
+        }
+        ctrl_modesel[(limbn-1)*3+thetan-1] = newmode;
+    }
+
+设置控制模式，limbn代表所要设置的关节所在肢体，范围是1~4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)。thetan代表所要设置的关节角，范围是1~3, newmode表示要设置的关节控制模式。
+
+.. code-block:: c++
+
+ private:
+    void SetJointsPIDTargetPos(int indexlimb, int indextheta,double targetvalue);
+
+设置关节期望位置，indexlimb代表所要设置的关节所在肢体，范围是1~4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)。indextheta代表所要设置的关节角，范围是1~3。targetvalue表示要设置的期望位置，单位rad。调用该函数只是简单地对ctrl_jointsPos相应变量赋值，并不会将关节设置为位控并实际执行。
+
+.. code-block:: c++
+
+ private:
+    void Step();
+
+该函数每时间步(m_steptime)会被调用一次，用来完成所有机器人状态的计算和更新。
+
+.. code-block:: c++
+
+ private:
+    void TransPosCtlMessage();
+    void TransTorCtlMessage();
+
+TransPosCtlMessage用来传送位控指令，TransTorCtlMessage用来传送力控指令，今后他们会合并成一个函数。
+
+.. code-block:: c++
+
+ private:
+    void GaitAlgorithm();
+
+步态算法函数，应在该函数中完成机器人所有步态算法。
+
+.. code-block:: c++
+
+ private:
+    void ControlTransport();
+
+传送指令信息，该函数当前调用了TransPosCtlMessage。
+
+.. code-block:: c++
+
+ private:
+    const std::vector<Vector3d>& GetInvKineticsAnswer(int indexlimb);
+
+该函数获得由indexlimb指定肢体的逆运动学解，indexlimb范围为1～4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)，函数返回一个保存所有逆运动学解的容器。
+
+.. code-block:: c++
+
+ private:
+    void IdentifyInertialParameters();
+    void IdentifyInertialParametersUsingNoAccDynamics();
+
+这两个函数在参数辨识中使用，当前应只利用IdentifyInertialParameters进行参数辨识，辨识过程开始时会将机器人状态设置为ROBOT_STATE::IDENTIFICATION，结束后会自动将机器人状态设置为ROBOT_STATE::STOP。
+
+.. code-block:: c++
+
+ public:
+    QuadRobot();
+
+构造函数当前只调用了ConstructModel函数。
+
+属性相关函数
+++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ public:
+    void SyncStepTime(double steptime = 0.001);
+
+该函数同步QuadRobot类对象与LinkModel类对象时间步长为steptime，单位秒。
+
+.. code-block:: c++
+
+ public:
+    double GetStepTime() { return m_steptime; }
+
+函数返回当前时间步长，单位秒。
+
+.. code-block:: c++
+
+ public:
+    ulong GetTimeCounter();
+
+函数返回运行时间步次数。
+
+.. code-block:: c++
+
+ public:
+    double GetRunTime();
+
+该函数返回机器人实际运行时间，单位秒。
+
+.. code-block:: c++
+
+ public:
+    bool IsReady();
+
+返回True表明机器人已准备好可以正常工作，返回False表明机器人的通信或其它方面尚未准备好。
+
+.. code-block:: c++
+
+ public:
+    void GetLock();
+    void ReleaseLock();
+
+同步锁函数，当前没有应用。
+
+.. code-block:: c++
+
+ public:
+    ROBOT_STATE GetState();
+
+返回当前机器人状态。
+
+.. code-block:: c++
+
+ public:
+     void SetExpectedHeight(double height);
+
+设置机器人期望高度，当前只用于全位控Trot步态。
+
+运动学相关函数
+++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ public:
+     Vector3d GetFootPos(u_char index);
+     Vector3d GetFootVel (u_char index);
+
+当前这两个函数为空。
+
+动力学相关函数
+++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ public:
+    inline void SetLowPassFilter(double e){m_cffilter = e;}
+    inline double  GetLowPassFilter(){return m_cffilter;}
+
+未来这两个函数会被删除。
+
+.. _QuadRobot-class-function_ctrl-label:
+
+控制相关函数
+++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ public: 
+    void SetJointsTargetPos(int indexlimb, int indextheta, double targetvalue, double angularVel = 1);
+
+该函数设置指定的关节控制模式为位控，并以平均速度为angularVel(rad/s)接近目标值targetvalue，indexlimb代表所要设置的关节所在肢体，范围是1~4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)。indextheta代表所要设置的关节角，范围是1~3。函数实现用到了过程过程发生器 :ref:`TransProcGenerator <TransProcGenerator-class-label>`。
+
+.. code-block:: c++
+
+ public:
+    bool SetFootPointPos(int indexlimb, const Vector3d& position, double execute_time = 0.5, INV_KIN_SOLUTION_TYPE type = MINI_DISTANCE);
+
+该函数设置指定的肢体indexlimb(范围1~4)相对于肢体坐标系的足端位置为向量position，执行时间为execute_time(单位秒)，type指定逆运动学存在多个解时如何选择，MINI_DISTANCE表示自动选择离当前关节位置最近距离的解，MANUAL为手动选项，可参考 :ref:`INV_KIN_SOLUTION_TYPE-member-label` 中的INV_KIN_SOLUTION_TYPE。如果有解，那么函数将返回True，否则返回False。
+
+.. code-block:: c++
+
+ public:
+    //This function change control mode to torque control and apply a torque to the one we need.
+    void SetJointsTorque(int indexlimb, int indextheta,double torque);
+
+indexlimb代表所要设置的关节所在肢体，范围是1~4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)。indextheta代表所要设置的关节角，范围是1~3。该函数设置指定的关节为力控模式，并施加力矩torque。
+
+.. code-block:: c++
+
+ public:
+    void IdentificationMode() { robot_state = IDENTIFICATION; }
+
+该函数仅简单将机器人状态设置为ROBOT_STATE::IDENTIFICATION，将会开始参数辨识过程。
+
+.. note::
+	参数辨识过程前，应将机器人躯干固定并抬起，保证腿部运动过程中不碰触地面等物体，保证躯干处于静止状态。
+
+.. code-block:: c++
+
+ public:
+    void IdentificationCOMPosition();
+
+根据足端力辨识当前重心位置，调用该函数时应保持机器人处于静止状态。
+
+.. code-block:: c++
+
+ public:
+    inline bool GetBodyCOM(Vector3d& com)
+    {
+        if(m_bodyCOMValid) { com = m_bodyCOM; return true;}
+        else{ return false; }
+    }
+
+将重心位置赋值给com向量，调用该函数前首先应调用IdentificationCOMPosition。函数成功返回True，否则返回False。
+
+步态相关函数
+++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+ public:
+    void TrotGait(double velocity = 0.5);
+
+设置机器人状态为Trot，速度为velocity，单位米每秒。
+
+.. code-block:: c++
+
+ public:
+	/*TODO !*/
+    void JumpGait();
+

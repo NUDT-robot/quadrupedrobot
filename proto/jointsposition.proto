@@ -1,0 +1,13 @@
+syntax = "proto3";
+package QRsensor.msgs;
+
+message LimbJoints
+{
+	double theta1 = 1;
+	double theta2 = 2;
+	double theta3 = 3;
+}
+message JointsPosition
+{
+	repeated LimbJoints limbjoints = 1;
+}

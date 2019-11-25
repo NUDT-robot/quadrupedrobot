@@ -1,0 +1,366 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>肢体模型LimbModel类 &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="四足机器人类" href="class_QuadRobot.html" />
+    <link rel="prev" title="连杆模型LinkModel类" href="class_LinkModel.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="class_QuadRobot.html" title="四足机器人类"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="class_LinkModel.html" title="连杆模型LinkModel类"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" >ISROBOT四足机器人程序开发文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="relation.html" accesskey="U">定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="class_LinkModel.html"
+                        title="previous chapter">连杆模型LinkModel类</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="class_QuadRobot.html"
+                        title="next chapter">四足机器人类</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="limbmodel">
+<span id="limbmodel-class-label"></span><h1>肢体模型LimbModel类<a class="headerlink" href="#limbmodel" title="Permalink to this headline">¶</a></h1>
+<p>该类代表机器人的肢体，一个肢体由3个连杆( <a class="reference internal" href="class_LinkModel.html#linkmodel-class-label"><span class="std std-ref">连杆模型LinkModel类</span></a> )组成，负责肢体部的正、逆运动学和动力学计算，根据传感器数据提供的关节角度，通过差分实时计算角速度与角加速度以及与地面接触的末端连杆坐标系相对于肢体坐标系的旋转矩阵。详细描述和数学推导请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。</p>
+<div class="section" id="id1">
+<h2>LimbModel类成员变量<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="k">enum</span> <span class="n">LIMB_STATE</span>
+   <span class="p">{</span>
+       <span class="n">SWING</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+       <span class="n">SUPPORT</span> <span class="o">=</span> <span class="mi">1</span>
+   <span class="p">};</span>
+</pre></div>
+</div>
+<p>LIMB_STATE枚举变量用于指示当前肢体状态，SWING表示处于摆动状态，SUPPORT表示处于支撑(触地)状态。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">m_isvalid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>如果模型已正确初始化，那么该变量值为TRUE,否则为FALSE。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">m_dataValid</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>该成员用来指示来自传感器的数据(例如关节角、关节力矩、姿态等)是否可用，可用则值为TRUE，否则为FALSE。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">u_char</span> <span class="n">m_numOfLink</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>该成员变量的值表示组成一个肢体的连杆数量，目前默认为3连杆。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">LinkModel</span><span class="o">*</span> <span class="n">m_prod</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">};</span>
+</pre></div>
+</div>
+<p>构成一个肢体的连杆类数组指针，目前默认为3连杆。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">m_steptime</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">;</span>
+       <span class="kt">double</span> <span class="n">m_factorTime</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>m_steptime成员变量存储时间步长，用于通过差分来计算速度和加速度，m_factorTime仅为m_steptime的倒数。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">LIMB_STATE</span> <span class="n">limb_state</span> <span class="o">=</span> <span class="n">SUPPORT</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>初始情况下，默认每个肢体处于支撑状态。</p>
+<div class="section" id="id2">
+<h3>运动学相关成员变量<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">m_originPos</span><span class="p">;</span>     <span class="c1">//Origin position of O1XYZ frame in OXYZ frame, Default value 0</span>
+   <span class="n">Vector3d</span> <span class="n">m_originVel</span><span class="p">;</span>     <span class="c1">//Origin velocity of O1XYZ frame in OXYZ frame, Default value 0</span>
+   <span class="n">Vector3d</span> <span class="n">m_originAccVel</span><span class="p">;</span>     <span class="c1">//Origin Accelerated velocity of O1XYZ frame in OXYZ frame, Default value 0</span>
+</pre></div>
+</div>
+<p>肢体坐标系O1XYZ原点相对于机器人体坐标系OXYZ的位置、速度和加速度，关于坐标系的详细描述和数学推导请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">m_thetaPos</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+   <span class="kt">double</span> <span class="n">m_thetaVel</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+   <span class="kt">double</span> <span class="n">m_thetaAccVel</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>m_thetaPos存储当前时刻关节位置，m_thetaVel存储当前时刻关节角速度，m_thetaAccVel存储当前时刻关节角加速度。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">m_pointPos</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+       <span class="n">Vector3d</span> <span class="n">m_pointVel</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+   <span class="n">Vector3d</span> <span class="n">m_pointAccVel</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>m_pointPos[0]为A点在肢体坐标系中的位置向量，m_pointPos[1]为B点在肢体坐标系中的位置向量，m_pointPos[2]为C点在肢体坐标系中的位置向量，有关A、B和C点定义，请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。m_pointVel[3]与m_pointAccVel[3]分别为ABC三点的速度和加速度。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">InverAnswer</span> <span class="n">inv_ans_tree</span><span class="p">;</span>
+   <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Vector3d</span><span class="o">&gt;</span> <span class="n">m_invans</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>inv_ans_tree是存放逆运动学求解过程中解得的关节角数据的树( <a class="reference internal" href="datastructure/class_TreeNode.html#inveranswer-class-label"><span class="std std-ref">详见InverAnswer类</span></a> )，m_invans存放最终的逆运动学解，容器的大小即为解的数量，Vector3d的XYZ三个值分别为角1、角2和角3,有关角的定义请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Matrix3d</span> <span class="n">R_BtoBody</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>连杆B坐标系到肢体坐标系的旋转矩阵。</p>
+</div>
+<div class="section" id="id3">
+<h3>动力学相关成员变量<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span>  <span class="n">generalizedJointWrench</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>以关节角为广义坐标，该变量为相应的广义力。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">baseParameters</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="n">BASEPARASIZE</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>基参数数组，用于计算动力学方程，数值由参数辨识过程确定。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">contactforce_P</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>在肢体坐标系下的接触力向量。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">generalized_cf</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">};</span>
+   <span class="kt">double</span> <span class="n">generalized_cfint</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">};</span>
+   <span class="n">ulong</span> <span class="n">index_GFFB</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">theta1_t0</span><span class="p">,</span><span class="n">theta2_t0</span><span class="p">,</span><span class="n">theta3_t0</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">dtheta1_t0</span><span class="p">,</span><span class="n">dtheta2_t0</span><span class="p">,</span><span class="n">dtheta3_t0</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">L_Integralsum</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">36</span><span class="p">];</span>
+   <span class="kt">double</span> <span class="n">torque_integral</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+   <span class="kt">double</span> <span class="n">gcf_integral</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">};</span>
+   <span class="kt">double</span> <span class="n">gcf_eval</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">};</span>
+   <span class="n">ulong</span> <span class="n">simstep</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+   <span class="kt">bool</span> <span class="n">resetIntegral</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>计算足端接触力用到的内部变量，这些变量很可能会发生发动，细节请参考代码注释。</p>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>LimbModel类私有成员函数<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kr">inline</span> <span class="kt">void</span> <span class="n">SetValid</span><span class="p">(</span><span class="kt">bool</span> <span class="n">valid</span><span class="p">){</span><span class="n">m_dataValid</span> <span class="o">=</span> <span class="n">valid</span><span class="p">;}</span>
+</pre></div>
+</div>
+<p>设置传感器数据可用状态，True为可用，False为不可用。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">SetupModel</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>模型初始化函数。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">InvCalTheta2</span><span class="p">(</span><span class="kt">double</span> <span class="n">cx</span><span class="p">,</span> <span class="kt">double</span> <span class="n">d</span><span class="p">,</span> <span class="kt">double</span> <span class="n">e</span><span class="p">,</span> <span class="n">TreeNode</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;*</span> <span class="n">ptheta3</span><span class="p">);</span>
+   <span class="kt">bool</span> <span class="nf">InvCalTheta1and3Then2</span><span class="p">(</span><span class="k">const</span> <span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">position</span><span class="p">,</span> <span class="n">TreeNode</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;*</span> <span class="n">proot</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>仅为实现逆运动学计算提供函数调用。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kr">inline</span> <span class="kt">void</span> <span class="n">SetOriginPos</span><span class="p">(</span><span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">pos</span><span class="p">)</span>   <span class="p">{</span> <span class="n">m_originPos</span> <span class="o">=</span> <span class="n">pos</span><span class="p">;}</span>
+   <span class="kr">inline</span> <span class="kt">void</span> <span class="n">SetOriginVel</span><span class="p">(</span><span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">vel</span><span class="p">)</span>   <span class="p">{</span> <span class="n">m_originVel</span> <span class="o">=</span> <span class="n">vel</span><span class="p">;}</span>
+   <span class="kr">inline</span> <span class="kt">void</span> <span class="n">SetOriginAccVel</span><span class="p">(</span><span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">accvel</span><span class="p">)</span>   <span class="p">{</span> <span class="n">m_originAccVel</span> <span class="o">=</span> <span class="n">accvel</span><span class="p">;}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">CoordinateTransform</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>这个函数实际完成了由连杆B坐标系到肢体坐标系的旋转矩阵计算。</p>
+<p>设置肢体坐标系原点在机器人体坐标系中的位置、速度和加速度。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+       <span class="kr">inline</span> <span class="kt">void</span> <span class="n">SetGeneralizedForce</span><span class="p">(</span><span class="n">Vector3d</span> <span class="n">gf</span><span class="p">)</span> <span class="p">{</span> <span class="n">generalizedJointWrench</span> <span class="o">=</span> <span class="n">gf</span><span class="p">;</span> <span class="p">}</span>
+   <span class="kr">inline</span> <span class="n">Vector3d</span> <span class="n">GetGeneralizedForce</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="n">generalizedJointWrench</span><span class="p">;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>仅在计算动力学内部实现使用，功能分别为设置和得到广义力。</p>
+</div>
+<div class="section" id="limbmodel-class-function-public-label">
+<span id="id5"></span><h2>LimbModel类公共成员函数<a class="headerlink" href="#limbmodel-class-function-public-label" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+       <span class="n">LimbModel</span><span class="p">(</span><span class="n">u_char</span> <span class="n">numsOfLink</span> <span class="o">=</span> <span class="mi">3</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>创建肢体对象，numsOfLink表示构成肢体的实际连杆数量。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="o">~</span><span class="n">LimbModel</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>析构函数会释放所含连杆的内存资源。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+       <span class="kt">bool</span> <span class="n">ModifyLinkParam</span><span class="p">(</span><span class="n">u_char</span> <span class="n">rodindex</span><span class="p">,</span>  <span class="kt">double</span> <span class="n">length</span><span class="p">,</span> <span class="kt">double</span> <span class="n">cop</span><span class="p">,</span> <span class="kt">double</span> <span class="n">mass</span><span class="p">,</span> <span class="n">Matrix3d</span> <span class="n">inertial</span> <span class="p">);</span>
+</pre></div>
+</div>
+<p>该函数修改肢体所含连杆的属性，rodindex指定要修改的连杆索引，范围在1～m_numOfLink。length为指定的连杆长度，cop、mass、inertial三个变量实际上并未使用，当前可以随意指定。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">SetSteptime</span><span class="p">(</span><span class="kt">double</span> <span class="n">steptime</span><span class="p">)</span> <span class="p">{</span><span class="n">assert</span><span class="p">(</span><span class="n">steptime</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span> <span class="n">m_steptime</span> <span class="o">=</span> <span class="n">steptime</span><span class="p">;</span><span class="n">m_factorTime</span><span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">m_steptime</span><span class="p">;}</span>
+</pre></div>
+</div>
+<p>设置时间步长，单位为 <strong>秒</strong>，该步长用于差分计算速度和加速度。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">LIMB_STATE</span> <span class="n">GetState</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数返回当前肢体状态，SWING表示处于摆动状态，SUPPORT表示处于支撑(触地)状态。</p>
+<div class="section" id="id6">
+<h3>运动学函数<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">u_char</span> <span class="n">GetNumsOfLink</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数返回当前构成肢体的连杆数量。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">LinkModel</span><span class="o">**</span> <span class="n">GetLink</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数返回一个指向构成肢体的连杆指针数组，数组的大小可由GetNumsOfLink()函数获得。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">GetOriginPos</span><span class="p">()</span>   <span class="p">{</span><span class="k">return</span> <span class="n">m_originPos</span><span class="p">;}</span>
+   <span class="n">Vector3d</span> <span class="n">GetOriginVel</span><span class="p">()</span>   <span class="p">{</span><span class="k">return</span> <span class="n">m_originVel</span><span class="p">;}</span>
+   <span class="n">Vector3d</span> <span class="n">GetOriginAccVel</span><span class="p">()</span>   <span class="p">{</span><span class="k">return</span> <span class="n">m_originAccVel</span><span class="p">;}</span>
+</pre></div>
+</div>
+<p>这三个函数分别返回肢体坐标系原点在机器人体坐标系中的位置、速度和加速度向量。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+
+   <span class="kt">double</span> <span class="n">GetThetaPos</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">)</span>
+   <span class="kt">double</span> <span class="n">GetThetaVel</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">)</span>
+   <span class="kt">double</span> <span class="n">GetThetaAccVel</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>这三个函数分别返回由index指向关节的角位移、速度和加速度。index范围在1～m_numOfLink，超出该范围将向终端输出错误信息并返回1e10。对于关节角的定义，请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kr">inline</span> <span class="n">Vector3d</span> <span class="n">GetPointPos</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">)</span>   <span class="p">{</span><span class="k">return</span> <span class="n">m_pointPos</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">];}</span>
+   <span class="kr">inline</span> <span class="n">Vector3d</span> <span class="n">GetPointVel</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">)</span>   <span class="p">{</span><span class="k">return</span> <span class="n">m_pointVel</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">];}</span>
+   <span class="kr">inline</span> <span class="n">Vector3d</span> <span class="n">GetPointAccVel</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">)</span>   <span class="p">{</span><span class="k">return</span> <span class="n">m_pointAccVel</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">];}</span>
+</pre></div>
+</div>
+<p>这三个函数分别返回肢体连杆上A、B和C点在肢体坐标系中的位置、速度和加速度向量，index范围在1～m_numOfLink。对于连杆上点的定义，请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。函数GetPointAccVel目前并没有实现，不应被使用。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kr">inline</span> <span class="n">Matrix3d</span> <span class="n">GetCoordTransformMatrix</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="n">R_BtoBody</span><span class="p">;}</span>
+</pre></div>
+</div>
+<p>该函数返回一个由B连杆坐标系到肢体坐标系的旋转矩阵，有关坐标系及旋转矩阵的表达式，请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">SetThetaPos</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">,</span> <span class="kt">double</span> <span class="n">pos</span><span class="p">)</span>
+   <span class="kt">void</span> <span class="n">SetThetaVel</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">,</span> <span class="kt">double</span> <span class="n">vel</span><span class="p">)</span>
+   <span class="kt">void</span> <span class="n">SetThetaAccVel</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">,</span> <span class="kt">double</span> <span class="n">accvel</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>这三个函数分别设置由index指定的关节角、角速度和角加速度，index范围在1～m_numOfLink，如果超出范围，则函数会向终端发出错误提示并返回。</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">关节角的位置、速度和加速度是根据传感器提供的数据计算获得，因此这三个函数一般不应该被使用！当前的应用只存在于对逆运动学解的验证！</p>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">Step</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数会计算A、B、C三点位置，更新旋转矩阵，然后通过动力学计算估计足底力。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">CalMainPointPos</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数通过当前关节角度计算A、B、C三点位置。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">GetMainPointPos</span><span class="p">(</span><span class="kt">int</span> <span class="n">index</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>函数返回A、B、C三点位置，index范围为1～3,分别表示A、B、C三点。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">CalInvertKinetics</span><span class="p">(</span><span class="k">const</span> <span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">postition</span><span class="p">);</span>
+   <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Vector3d</span><span class="o">&gt;&amp;</span> <span class="n">GetInvAnswer</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>CalInvertKinetics函数根据参数postition计算逆运动学，如果有解，则返回True，否则返回False。要得到逆运动学解，首先应调用CalInvertKinetics，如果有解存在，那么调用GetInvAnswer函数。GetInvAnswer返回一个储存解的容器，Vector3d的三个变量XYZ分别对应角123。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">DynamicsCalFootContactForce</span><span class="p">();</span>
+   <span class="kt">void</span> <span class="nf">DynamicsCalFootContactForceWithoutAcc</span><span class="p">();</span>
+   <span class="kr">inline</span> <span class="n">Vector3d</span> <span class="nf">GetContactForce</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>足底力估计相关函数。DynamicsCalFootContactForce是直接利用原始动力学方程计算足底力，DynamicsCalFootContactForceWithoutAcc是利用广义扰动观测器(GM)进行足底力计算，GetContactForce简单地返回足端估计力结果向量。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">friend</span> <span class="k">class</span> <span class="nc">QuadRobot</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>为了使机器人类能访问肢体私有成员，设置其为友元类。</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="class_QuadRobot.html" title="四足机器人类"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="class_LinkModel.html" title="连杆模型LinkModel类"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" >ISROBOT四足机器人程序开发文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="relation.html" >定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

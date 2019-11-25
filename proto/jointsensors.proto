@@ -1,0 +1,33 @@
+syntax = "proto3";
+package QRsensor.msgs;
+
+message Time
+{
+  int32 sec = 1;
+  int32 nsec = 2;
+}
+
+message Vector3d
+{
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Wrench
+{
+  Vector3d force        = 1;
+  Vector3d torque       = 2;
+  Vector3d force_offset = 3;
+}
+
+message ForceTorque
+{
+  Wrench wrench = 1;
+  Time time     = 2;
+}
+
+message AllJointSensors
+{
+	repeated ForceTorque jointwrench = 1;
+}

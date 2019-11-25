@@ -1,0 +1,15 @@
+.. 这是什么？这是a_1文档
+  
+
+Welcome to a_1!
+=======================================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`search`

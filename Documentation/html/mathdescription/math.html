@@ -1,0 +1,129 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>四足机器人模型、运动学与动力学(三连杆模型) &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ISROBOT四足机器人程序使用说明文档" href="../docUser.html" />
+    <link rel="prev" title="代码结构与移植" href="../Portable/item.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../docUser.html" title="ISROBOT四足机器人程序使用说明文档"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../Portable/item.html" title="代码结构与移植"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" accesskey="U">ISROBOT四足机器人程序开发文档</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../Portable/item.html"
+                        title="previous chapter">代码结构与移植</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../docUser.html"
+                        title="next chapter">ISROBOT四足机器人程序使用说明文档</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="math-doc-label">
+<span id="id1"></span><h1>四足机器人模型、运动学与动力学(三连杆模型)<a class="headerlink" href="#math-doc-label" title="Permalink to this headline">¶</a></h1>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">动力学部分需要 <strong>分析力学</strong> 相关知识，可参考分析力学经典著作《Analytical Mechanics》，作者A.I.Lurie。</p>
+</div>
+<a class="reference internal image-reference" href="../_images/math1.jpg"><img alt="../_images/math1.jpg" src="../_images/math1.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math2.jpg"><img alt="../_images/math2.jpg" src="../_images/math2.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math3.jpg"><img alt="../_images/math3.jpg" src="../_images/math3.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math4.jpg"><img alt="../_images/math4.jpg" src="../_images/math4.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math5.jpg"><img alt="../_images/math5.jpg" src="../_images/math5.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math6.jpg"><img alt="../_images/math6.jpg" src="../_images/math6.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math7.jpg"><img alt="../_images/math7.jpg" src="../_images/math7.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math8.jpg"><img alt="../_images/math8.jpg" src="../_images/math8.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math9.jpg"><img alt="../_images/math9.jpg" src="../_images/math9.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math10.jpg"><img alt="../_images/math10.jpg" src="../_images/math10.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math11.jpg"><img alt="../_images/math11.jpg" src="../_images/math11.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math12.jpg"><img alt="../_images/math12.jpg" src="../_images/math12.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math13.jpg"><img alt="../_images/math13.jpg" src="../_images/math13.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math14.jpg"><img alt="../_images/math14.jpg" src="../_images/math14.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math15.jpg"><img alt="../_images/math15.jpg" src="../_images/math15.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math16.jpg"><img alt="../_images/math16.jpg" src="../_images/math16.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math17.jpg"><img alt="../_images/math17.jpg" src="../_images/math17.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math18.jpg"><img alt="../_images/math18.jpg" src="../_images/math18.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math19.jpg"><img alt="../_images/math19.jpg" src="../_images/math19.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math20.jpg"><img alt="../_images/math20.jpg" src="../_images/math20.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/math21.jpg"><img alt="../_images/math21.jpg" src="../_images/math21.jpg" style="width: 1000px;" /></a>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../docUser.html" title="ISROBOT四足机器人程序使用说明文档"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../Portable/item.html" title="代码结构与移植"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" >ISROBOT四足机器人程序开发文档</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

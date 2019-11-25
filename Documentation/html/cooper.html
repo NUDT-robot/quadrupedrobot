@@ -1,0 +1,114 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>一起来做机器人的“思想” &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ISROBOT四足机器人程序使用说明文档" href="docUser.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="docUser.html" title="ISROBOT四足机器人程序使用说明文档"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="begin.html">LeggedRobot  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="docUser.html"
+                        title="previous chapter">ISROBOT四足机器人程序使用说明文档</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <p><em>Section author: 常旭 &lt;<a class="reference external" href="mailto:457911161&#37;&#52;&#48;qq&#46;com">457911161<span>&#64;</span>qq<span>&#46;</span>com</a>&gt;</em></p>
+<div class="section" id="id1">
+<h1>一起来做机器人的“思想”<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>机器人硬件结构固定后，它的表现如何取决于我们如何做机器人的思想(代码)，逐渐强大的四足机器人思想需要和充满激情的机器人爱好者一同成长。欢迎任何准备在机器人领域中成长的你一同加入我们的代码开发，你至少需要具备除机器人学有关理论外的如下技能：</p>
+<p>1.熟练掌握C++语言，如果具有纯软件项目开发经验更好。</p>
+<p>2.拥有Ubuntu或其它类UNIX系统的使用经验。</p>
+<p>3.了解make和cmake。</p>
+<p>4.了解一些常用的数学库，如GSL、Eigen、qpOASE等。</p>
+<p>5.掌握Git的基本用法，可参考Git作者撰写的开源书籍中文版 <a class="reference external" href="https://git-scm.com/book/zh/v2">https://git-scm.com/book/zh/v2</a>。</p>
+<div class="section" id="id2">
+<h2>研究目的<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>1.构建一个同时适用于仿真和真实机器人系统的代码库，可以快速将研究成果部署在系统上，并且随着时间的推移，机器人的表现将越来越强大。</p>
+<p>2.给未来的学弟学妹们一个快速成长的平台，使他们能迅速了解当前行之有效的相关机器人算法在仿真或真实系统中的表现。</p>
+<p>3.这使得所有人几乎都可以知道一个算法能达到的效果和存在的不足，从而有利于明确自己未来的研究方向。</p>
+<p>4.构建一个成熟可用的代码平台使我们更能集中精力做前沿问题，加快文献复现速度，为发表高质量论文奠定基础。</p>
+</div>
+<div class="section" id="id3">
+<h2>代码管理<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>代码管理工具采用Git，源码托管在GitHub上，网址 <a class="reference external" href="https://github.com/NUDT-robot/quadrupedrobot">https://github.com/NUDT-robot/quadrupedrobot</a>。</p>
+</div>
+<div class="section" id="id4">
+<h2>注意事项<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="_images/cooper.jpg"><img alt="_images/cooper.jpg" src="_images/cooper.jpg" style="width: 1000px;" /></a>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="docUser.html" title="ISROBOT四足机器人程序使用说明文档"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="begin.html">LeggedRobot  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

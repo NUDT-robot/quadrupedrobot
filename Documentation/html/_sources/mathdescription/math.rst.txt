@@ -1,0 +1,75 @@
+.. 数学依据
+  
+.. _math-doc-label:
+
+四足机器人模型、运动学与动力学(三连杆模型)
+==================================================
+
+.. warning::
+	动力学部分需要 **分析力学** 相关知识，可参考分析力学经典著作《Analytical Mechanics》，作者A.I.Lurie。
+
+.. image:: ../images/qrobotMathJpg/math1.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math2.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math3.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math4.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math5.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math6.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math7.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math8.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math9.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math10.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math11.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math12.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math13.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math14.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math15.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math16.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math17.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math18.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math19.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math20.jpg
+    :width: 1000
+
+.. image:: ../images/qrobotMathJpg/math21.jpg
+    :width: 1000
+
+
+

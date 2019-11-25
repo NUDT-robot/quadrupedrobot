@@ -1,0 +1,178 @@
+.. 数据结构类文档
+  
+数据结构类
+=======================================
+
+数据结构类定义了机器人代码中常用的数据结构,除特殊声明外，默认头文件在include/ds/文件夹中。
+
+.. _TreeNode-class-label:
+
+template <typename _Tp> class TreeNode模板类
+-------------------------------------------------
+
+TreeNode模板类定义了树结构中的节点，主要成员变量包含一个指向父节点的指针parent、一个指向若干子节点的容器children以及本节点对应的数据。通过枚举NodeType来表征该节点的属性，默认情况下节点为CHILD属性。
+
+.. code-block:: c++
+
+    enum NodeType
+    {
+       ROOT = 0,
+       CHILD = 1,
+       ANSWER =2
+    };
+
+ROOT代表根节点，除根节点外都为CHILD节点，叶子节点被赋予ANSWER属性。
+
+TreeNode成员函数
+++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+	private: 
+		void SetNodeType(NodeType newtype);
+
+设置节点类型。
+
+.. code-block:: c++
+
+	public:	
+		TreeNode(TreeNode* nodeparent = NULL);
+  
+构造函数，nodeparent为分配给该节点的父指针。
+
+.. code-block:: c++
+
+	public:	
+		~TreeNode() 
+
+析构函数，删除所有子节点指针指向内存，并清空存储子节点的容器。
+
+.. code-block:: c++
+
+	public:	
+		void SetParent(TreeNode* newparent);
+		TreeNode* GetParent();
+
+设置和得到本节点的父节点，如果当前已有父节点，那么将会从当前父节点的子节点列表中删除本节点后，设置newparent为新父节点。
+
+.. code-block:: c++
+
+	public:	
+		void SetData(_Tp value);
+		const _Tp& GetData();
+
+设置和得到本节点数据。
+
+.. code-block:: c++
+
+	public:   	
+		std::vector<TreeNode*>& GetChildren();
+
+获得子节点容器。
+
+.. code-block:: c++
+
+	public: 
+		NodeType GetNodeType();
+
+获得本节点类型。
+
+.. code-block:: c++
+
+	public: 
+		void SetType(NodeType newtype);
+
+设置本节点类型，当前只是简单地调用了SetNodeType私有成员函数。
+
+.. _Tree-class-label:
+
+template <typename _Tp> class Tree类
+---------------------------------------
+
+完整的树由Tree类的实例实现，该类拥有一个指向树根节点的TreeNode<_Tp>* root变量，该类实例化时会自动生成一个树根节点。
+
+Tree成员函数
+++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+	public:
+		Tree();
+
+创建树实例时，构造函数会自动生成一个树根节点。
+
+.. code-block:: c++
+
+	public:
+ 		~Tree();
+
+析构函数会释放所有树内节点占有的内存资源。
+
+.. code-block:: c++
+
+	public:
+		TreeNode<_Tp>* GetRoot();
+
+该函数返回指向根节点的指针。
+
+.. code-block:: c++
+
+	public:
+		TreeNode<_Tp>* AddNode(TreeNode<_Tp>* parent);
+
+向树中增加一个节点，其父节点为parent。函数返回值是一个指向新添加节点的指针，若parent为空，则会提示增加节点失败并返回NULL。
+
+.. code-block:: c++
+
+	public:
+		void ClearTree();
+
+调用该函数会清除所有树内除根节点外的所有子节点，并释放子节点内存。
+
+.. _InverAnswer-class-label:
+
+InverAnswer类
+---------------------------------------
+
+该类随LimbModel类在同一文件中声明，继承自Tree<double>类，主要用来保存逆运动学的所有结果，通过保存每个解节点(叶子节点和具有 :ref:`NodeType::ANSWER <TreeNode-class-label>` 属性的节点)并向上追溯父节点来得到所有解。
+
+InverAnswer类成员函数
+++++++++++++++++++++++++++++++++++++++++
+
+.. code-block:: c++
+
+	public:
+		InverAnswer();
+
+当前为空。
+
+.. code-block:: c++
+
+	public:
+		~InverAnswer();
+
+当前为空。
+
+.. code-block:: c++
+
+	private: 
+		void FindAnswer( TreeNode<double>* parent);
+
+该函数仅为内部实现使用，它从parent指向的节点开始进行深度优先搜索，如果搜索到的节点为叶子节点并且具有 :ref:`NodeType::ANSWER <TreeNode-class-label>` 属性,那么就将该节点加入到存放解的容器中。
+
+.. code-block:: c++
+
+	public:
+		void GetAnswer(std::vector<Vector3d>& answer, const Vector3d& position, double length[3], double tol = 0.0001);
+
+该函数首先通过FindAnswer找到所有可能的解，由于逆运动学计算过程中方程并不与原方程等价，因此需要对解进行验证。利用position提供的足端位置和length[3]提供的连杆几何参数进行正运动学计算，如果与position向量的每个分量误差都小于tol，那么认定该解为逆运动学解并被放入answer容器中。
+
+.. code-block:: c++
+
+	public:
+		void ClearInvAns();
+
+调用该函数会清空当前除了根节点外的所有树节点，并清空解容器。
+
+
+

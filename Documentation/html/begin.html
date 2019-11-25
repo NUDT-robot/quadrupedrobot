@@ -1,0 +1,132 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ISROBOT(IceSnow Robot)四足机器人程序文档 &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ISROBOT四足机器人程序开发文档" href="docDevel.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="docDevel.html" title="ISROBOT四足机器人程序开发文档"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">LeggedRobot  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Next topic</h4>
+  <p class="topless"><a href="docDevel.html"
+                        title="next chapter">ISROBOT四足机器人程序开发文档</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <p><em>Section author: 常旭 &lt;<a class="reference external" href="mailto:457911161&#37;&#52;&#48;qq&#46;com">457911161<span>&#64;</span>qq<span>&#46;</span>com</a>&gt;</em></p>
+<div class="section" id="isrobot-icesnow-robot">
+<h1>ISROBOT(IceSnow Robot)四足机器人程序文档<a class="headerlink" href="#isrobot-icesnow-robot" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>为什么做四足机器人程序开发？<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>机器人领域的发展进步主要体现在实际机器人系统的表现，无论理论上多么完美的算法都要在真实系统中实现。一个经过实际系统验证、稳定健壮的四足机器人代码库可以积累当前真正能解决问题的优秀算法成果，并为验证新的算法提供一个快速有效的基础代码平台。
+一些世界著名高校开源了一些机器人代码，这些代码对于单纯的平台使用者来说足够的，但是对于专业从事于机器人的研究人员来说，拥有自己实验室的代码平台至关重要，主要体现在如下几个方面:</p>
+<p>1.不受制于其它高校机器人代码平台的更新速度影响，不会将时间浪费在调试一些无聊的错误上。</p>
+<p>2.适合新人快速入门和掌握最新、最有效的机器人相关功能实现方法，从而 <strong>可以快速明确研究方向</strong>。</p>
+<p>3.拥有自己的代码库意味着实现了所有细节，可以自由修改。</p>
+<p>4.方便和程序员当面沟通。</p>
+<p>5.随着时间的推移，代码库会变得越来越强大，这也意味着机器人的功能会越来越强大。</p>
+<p>6.所以，这是有机会在该领域从跟跑到领跑的必要手段。</p>
+</div>
+<div class="section" id="id2">
+<h2>程序架构目标<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>程序的架构设计目标是构建一个可以在仿真和真实机器人平台上运行的四足机器人代码，针对不同几何尺寸的机器人模型，只需在配置文件中进行少量修改就可以使代码快速在仿真/实际系统中部署。</p>
+</div>
+<div class="section" id="id3">
+<h2>库依赖<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>需要下载ROS或Gazebo。</p>
+</div>
+<div class="section" id="id4">
+<h2>程序文档结构<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>ISROBOT四足机器人程序文档主要分为开发说明文档和使用说明文档，对于刚开始接触C++或者只关注算法实现的研究人员来说可以直接阅读使用说明文档。如果您需要了解关于本程序的更多细节，可以阅读开发说明文档。</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">文档链接：</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docDevel.html">ISROBOT四足机器人开发说明文档</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docUser.html">ISROBOT四足机器人使用说明文档</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="id5">
+<h2>一起合作<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cooper.html">一起来做机器人的“思想”</a></li>
+</ul>
+</div>
+<p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="docDevel.html" title="ISROBOT四足机器人程序开发文档"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">LeggedRobot  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,544 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>四足机器人类 &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="数据结构类" href="datastructure/class_TreeNode.html" />
+    <link rel="prev" title="肢体模型LimbModel类" href="class_LimbModel.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="datastructure/class_TreeNode.html" title="数据结构类"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="class_LimbModel.html" title="肢体模型LimbModel类"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" >ISROBOT四足机器人程序开发文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="relation.html" accesskey="U">定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="class_LimbModel.html"
+                        title="previous chapter">肢体模型LimbModel类</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="datastructure/class_TreeNode.html"
+                        title="next chapter">数据结构类</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="quadrobot-class-label">
+<span id="id1"></span><h1>四足机器人类<a class="headerlink" href="#quadrobot-class-label" title="Permalink to this headline">¶</a></h1>
+<p>四足机器人类QuadRobot主要由4个 <a class="reference internal" href="class_LinkModel.html#linkmodel-class-label"><span class="std std-ref">LinkModel类</span></a> m_steptime对象和一个IMU传感器类组成，负责处理传感器信息、实现步态算法、发送控制指令等。有关模型的描述与推导请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。</p>
+<div class="section" id="quadrobot">
+<span id="quadrobot-class-member-label"></span><h2>QuadRobot类成员变量<a class="headerlink" href="#quadrobot" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+       <span class="n">LimbModel</span> <span class="n">limb_frontleft</span><span class="p">;</span>
+       <span class="n">LimbModel</span> <span class="n">limb_frontright</span><span class="p">;</span>
+       <span class="n">LimbModel</span> <span class="n">limb_backleft</span><span class="p">;</span>
+       <span class="n">LimbModel</span> <span class="n">limb_backright</span><span class="p">;</span>
+<span class="k">private</span><span class="o">:</span>
+       <span class="n">Sensor_INS</span> <span class="n">m_sensorINS</span><span class="p">;</span>
+
+<span class="k">friend</span> <span class="k">class</span> <span class="nc">Sensor_INS</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>该类包含四个肢体类对象和一个惯性导航系统类传感器(INS)对象。</p>
+<div class="section" id="inv-kin-solution-type-member-label">
+<span id="id2"></span><h3>功能型成员变量<a class="headerlink" href="#inv-kin-solution-type-member-label" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="k">enum</span> <span class="n">INV_KIN_SOLUTION_TYPE</span>
+   <span class="p">{</span>
+       <span class="n">MINI_DISTANCE</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+       <span class="n">MANUAL</span> <span class="o">=</span> <span class="mi">1</span>
+   <span class="p">};</span>
+</pre></div>
+</div>
+<p>该枚举类型为求解逆运动学时提供两种选择：MINI_DISTANCE自动选择与当前三个关节角组成的向量2-范数最小解，MANUAL选项将向控制台输出所有解，让用户选择所需解。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="k">enum</span> <span class="n">ROBOT_STATE</span>
+   <span class="p">{</span>
+       <span class="n">STOP</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+       <span class="n">WALK</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+       <span class="n">TROT</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+       <span class="n">RUN</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+       <span class="n">JUMP</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+       <span class="n">IDENTIFICATION</span> <span class="o">=</span> <span class="mi">99</span><span class="p">,</span>
+   <span class="p">};</span>
+</pre></div>
+</div>
+<p>该枚举类型指出了当前机器人的状态，在不同状态下，机器人执行不同的任务。需要添加额外功能时，应该在此增加枚举项。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="k">enum</span> <span class="n">CONTROL_MODE</span>
+   <span class="p">{</span>
+       <span class="n">POSITION</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+       <span class="n">TORQUE</span> <span class="o">=</span> <span class="mi">2</span>
+   <span class="p">};</span>
+</pre></div>
+</div>
+<p>该枚举类型对应关节的控制模式。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="k">struct</span> <span class="n">QRMATH</span>
+   <span class="p">{</span>
+       <span class="n">TransProcGenerator</span> <span class="n">linearTPG</span><span class="p">[</span><span class="mi">12</span><span class="p">];</span>
+   <span class="p">}</span><span class="n">qrmath</span><span class="p">;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>实现机器人算法需要相关数学类辅助，所有数学类应包含于QRMATH结构体中。当前具体内容包含如下：</dt>
+<dd><a class="reference internal" href="datastructure/class_TransProcGenerator.html#transprocgenerator-class-label"><span class="std std-ref">TransProcGenerator</span></a> 是过渡过程发生器。</dd>
+</dl>
+</div>
+<div class="section" id="id3">
+<h3>状态型成员变量<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">m_ready</span> <span class="o">=</span><span class="nb">false</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>该变量指示机器人是否可以正常动作，当前是在得到传输回的关节角信息后，将该变量置为True。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">m_SyncLock</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>同步锁变量。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">m_steptime</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">m_factorTime</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>m_steptime用于指定时间步长，该步长当前用来计算速度、加速度。m_factorTime实际上是m_steptime的倒数，仅用于略微提高计算速度。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">m_expheight</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>机器人的期望高度，这个高度当前是指从足端接触点在肢体坐标系中的Z坐标值。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">m_exp_vel</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>机器人躯干质心的期望速度。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">ROBOT_STATE</span> <span class="n">robot_state</span> <span class="o">=</span> <span class="n">ROBOT_STATE</span><span class="o">::</span><span class="n">STOP</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>该枚举变量指示机器人的当前状态，默认为停止状态。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+       <span class="n">ulong</span> <span class="n">m_TimeCounter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>m_TimeCounter是一个内部时间计数器，用于与真实/仿真机器人同步，它实际上指示了更新的步数。Simulation time = m_steptime*m_TimeCounter。</p>
+</div>
+<div class="section" id="id4">
+<h3>运动学成员变量<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">m_roll</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">m_pitch</span> <span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+   <span class="kt">double</span> <span class="n">m_yaw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>机器人躯干的姿态角，单位rad。关于姿态的详细描述和数学推导请参考文档 <a class="reference internal" href="../mathdescription/math.html#math-doc-label"><span class="std std-ref">四足机器人模型、运动学与动力学(三连杆模型)</span></a>。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">m_angleVel</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>机器人躯干的角速度向量。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">m_accVel</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>机器人躯干的加速度向量，应根据惯性导航系统(INS)的数据赋值。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">m_velocity</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>机器人躯干的速度向量，实际上是惯性导航系统(INS)测量点的速度。在导航应用中，INS与本体估计应协同考虑来给这个变量赋值。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">m_position</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>机器人的位置向量，实际上是惯性导航系统(INS)测量点的位置。在导航应用中，INS与本体估计应协同考虑来给这个变量赋值。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">Vector3d</span> <span class="n">limborg_frontleft</span><span class="p">;</span>
+   <span class="n">Vector3d</span> <span class="n">limborg_frontright</span><span class="p">;</span>
+   <span class="n">Vector3d</span> <span class="n">limborg_backleft</span><span class="p">;</span>
+   <span class="n">Vector3d</span> <span class="n">limborg_backright</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>4个肢体在机器人躯干坐标系中的位置向量。</p>
+</div>
+<div class="section" id="id5">
+<h3>动力学成员变量<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">m_bodyCOMValid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+   <span class="n">Vector3d</span> <span class="n">m_bodyCOM</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>重心位置相关变量m_bodyCOMValid指示当前质心位置数据是否可用，m_bodyCOM指定质心位置。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="k">class</span> <span class="nc">Wrench</span>
+   <span class="p">{</span>
+   <span class="k">public</span><span class="o">:</span>
+       <span class="n">Vector3d</span> <span class="n">force</span><span class="p">;</span>
+       <span class="n">Vector3d</span> <span class="n">torque</span><span class="p">;</span>
+   <span class="p">};</span>
+</pre></div>
+</div>
+<p>Wrench类包含了一个力向量和一个力矩向量，”Wrench”定义来自于文献。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">vector</span><span class="o">&lt;</span><span class="n">Wrench</span><span class="o">&gt;</span> <span class="n">fl_Jwrench</span><span class="p">;</span>
+   <span class="n">vector</span><span class="o">&lt;</span><span class="n">Wrench</span><span class="o">&gt;</span> <span class="n">fr_Jwrench</span><span class="p">;</span>
+   <span class="n">vector</span><span class="o">&lt;</span><span class="n">Wrench</span><span class="o">&gt;</span> <span class="n">bl_Jwrench</span><span class="p">;</span>
+   <span class="n">vector</span><span class="o">&lt;</span><span class="n">Wrench</span><span class="o">&gt;</span> <span class="n">br_Jwrench</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>四个肢体的关节Wrench容器，容器数据保存顺序依次为关节角1～3。Wrench向量相对于子坐标系，关节Wrench为父对子的Wrench。变量命名含义，f: front, b: back, l: left, r: right。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">Wrench</span>  <span class="n">fl_Cwrenchraw</span><span class="p">,</span> <span class="n">fr_Cwrenchraw</span><span class="p">,</span> <span class="n">bl_Cwrenchraw</span><span class="p">,</span> <span class="n">br_Cwrenchraw</span><span class="p">;</span>
+   <span class="n">Wrench</span>  <span class="n">fl_Cwrench</span><span class="p">,</span> <span class="n">fr_Cwrench</span><span class="p">,</span> <span class="n">bl_Cwrench</span><span class="p">,</span> <span class="n">br_Cwrench</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>接触力Wrench，变量命名含义，f: front, b: back, l: left, r: right。xx_Cwrenchraw表示从传感器(或仿真环境)中得到的接触力，xx_Cwrench是利用xx_Cwrenchraw进行滤波计算后的结果。</p>
+</div>
+<div class="section" id="id6">
+<h3>控制型成员变量<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+       <span class="kt">short</span> <span class="n">ctrl_modesel</span><span class="p">[</span><span class="mi">12</span><span class="p">];</span>
+       <span class="kt">double</span> <span class="n">ctrl_jointsPos</span><span class="p">[</span><span class="mi">12</span><span class="p">];</span>
+       <span class="kt">double</span> <span class="n">ctrl_jointsTor</span><span class="p">[</span><span class="mi">12</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>四足机器人一共包含4个肢体，每个肢体3个关节，共12个关节。ctrl_modesel[12]表示这12个关节的控制模式，ctrl_jointsPos[12]表示位置位控制的目标位置，ctrl_jointsTor[12]表示力控中施加的力。顺序为fl的1、2、3关节, fr的1、2、3关节, bl的1、2、3关节和br的1、2、3关节。</p>
+</div>
+<div class="section" id="id7">
+<h3>通信型成员变量<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>通信当前采用IGNITION库，消息类型均由Google Protobuf生成，详细内容可参考 <a class="reference external" href="https://ignitionrobotics.org">https://ignitionrobotics.org</a> 和 <a class="reference external" href="https://developers.google.cn/protocol-buffers/docs/cpptutorial">https://developers.google.cn/protocol-buffers/docs/cpptutorial</a>。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span> <span class="n">jointsPositionNode</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>关节位置通信节点。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span> <span class="n">jointSensorNode</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>关节力通信节点。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span> <span class="n">contactFLSensorNode</span><span class="p">;</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span> <span class="n">contactFRSensorNode</span><span class="p">;</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span> <span class="n">contactBLSensorNode</span><span class="p">;</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span> <span class="n">contactBRSensorNode</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>四个足端接触力通信节点。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="o">::</span><span class="n">matlab</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">Identification</span> <span class="n">matlabIdentMsg</span><span class="p">;</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span> <span class="n">matlabNode</span><span class="p">;</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span><span class="o">::</span><span class="n">Publisher</span> <span class="n">pubMatlab</span><span class="p">;</span>
+<span class="k">public</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">transfer_contact_force</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Matlab通信节点及相关变量。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="o">::</span><span class="n">QRcommand</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">Control</span> <span class="n">controlMsg</span><span class="p">;</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span> <span class="n">controlNode</span><span class="p">;</span>
+   <span class="n">ignition</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">Node</span><span class="o">::</span><span class="n">Publisher</span> <span class="n">pubControl</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>控制命令通信节点和消息变量。</p>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>QuadRobot类成员函数<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">SetReady</span><span class="p">(</span><span class="kt">bool</span> <span class="n">ready</span> <span class="p">);</span>
+</pre></div>
+</div>
+<p>设置机器人是否已经可以工作，如果可以，应设置ready为True，否则为False。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">InitializeETP_TORQUE</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>初始化期望高度为当前实际高度，避免产生突兀动作。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">ConstructModel</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>为机器人构建初始模型，该函数在构造函数中被调用。主要用来设置时间步长、确定肢体原点位置、肢体连杆参数、建立通信节点以及初始化必要变量等。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">AddTime</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数应在每时间步中被调用从而记录运行次数。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kr">inline</span> <span class="kt">void</span> <span class="n">SetAttitude</span><span class="p">(</span><span class="n">Vector3d</span> <span class="n">attitude</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>设置机器人躯干姿态角函数。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">ProcessJointsPositionData</span><span class="p">(</span><span class="k">const</span> <span class="o">::</span><span class="n">QRsensor</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">JointsPosition</span><span class="o">&amp;</span> <span class="n">positiondata</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>这是关节位置通信节点回调函数，将接收到的关节位置传递给机器人。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">ProcessJointSensorsData</span><span class="p">(</span><span class="k">const</span> <span class="o">::</span><span class="n">QRsensor</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">AllJointSensors</span><span class="o">&amp;</span>  <span class="n">jointdata</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>这是关节力通信节点回调函数，将接收到的关节力/力矩传递给机器人。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">ProcessFLContactSensorsData</span><span class="p">(</span><span class="k">const</span> <span class="n">gazebo</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">Contacts</span><span class="o">&amp;</span>  <span class="n">contactdata</span><span class="p">);</span>
+   <span class="kt">void</span> <span class="nf">ProcessFRContactSensorsData</span><span class="p">(</span><span class="k">const</span> <span class="n">gazebo</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">Contacts</span><span class="o">&amp;</span>  <span class="n">contactdata</span><span class="p">);</span>
+   <span class="kt">void</span> <span class="nf">ProcessBLContactSensorsData</span><span class="p">(</span><span class="k">const</span> <span class="n">gazebo</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">Contacts</span><span class="o">&amp;</span>  <span class="n">contactdata</span><span class="p">);</span>
+   <span class="kt">void</span> <span class="nf">ProcessBRContactSensorsData</span><span class="p">(</span><span class="k">const</span> <span class="n">gazebo</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">Contacts</span><span class="o">&amp;</span>  <span class="n">contactdata</span><span class="p">);</span>
+   <span class="kt">void</span> <span class="nf">AnalyzeContactsMessage</span><span class="p">(</span><span class="k">const</span> <span class="n">gazebo</span><span class="o">::</span><span class="n">msgs</span><span class="o">::</span><span class="n">Contacts</span><span class="o">&amp;</span>  <span class="n">contactdata</span><span class="p">,</span> <span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">out_totalforce</span><span class="p">,</span> <span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">out_totaltorque</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>这是4个足端接触力通信节点回调函数，将接收到的接触力传递给机器人。其中，AnalyzeContactsMessage函数用来完成对Gazebo中接触力的分析计算。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kr">inline</span> <span class="kt">void</span> <span class="n">SetControlMode</span><span class="p">(</span><span class="kt">int</span> <span class="n">limbn</span><span class="p">,</span> <span class="kt">int</span> <span class="n">thetan</span><span class="p">,</span> <span class="n">CONTROL_MODE</span> <span class="n">newmode</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="k">if</span><span class="p">(</span><span class="n">limbn</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="o">||</span> <span class="n">limbn</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">thetan</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">||</span> <span class="n">thetan</span> <span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span>
+       <span class="p">{</span>
+           <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Wrong index in function SetControlMode ! Nothing done !&quot;</span> <span class="o">&lt;&lt;</span><span class="n">endl</span><span class="p">;</span>
+           <span class="k">return</span><span class="p">;</span>
+       <span class="p">}</span>
+       <span class="n">ctrl_modesel</span><span class="p">[(</span><span class="n">limbn</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">thetan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">newmode</span><span class="p">;</span>
+   <span class="p">}</span>
+</pre></div>
+</div>
+<p>设置控制模式，limbn代表所要设置的关节所在肢体，范围是1~4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)。thetan代表所要设置的关节角，范围是1~3, newmode表示要设置的关节控制模式。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">SetJointsPIDTargetPos</span><span class="p">(</span><span class="kt">int</span> <span class="n">indexlimb</span><span class="p">,</span> <span class="kt">int</span> <span class="n">indextheta</span><span class="p">,</span><span class="kt">double</span> <span class="n">targetvalue</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>设置关节期望位置，indexlimb代表所要设置的关节所在肢体，范围是1~4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)。indextheta代表所要设置的关节角，范围是1~3。targetvalue表示要设置的期望位置，单位rad。调用该函数只是简单地对ctrl_jointsPos相应变量赋值，并不会将关节设置为位控并实际执行。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">Step</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数每时间步(m_steptime)会被调用一次，用来完成所有机器人状态的计算和更新。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">TransPosCtlMessage</span><span class="p">();</span>
+   <span class="kt">void</span> <span class="nf">TransTorCtlMessage</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>TransPosCtlMessage用来传送位控指令，TransTorCtlMessage用来传送力控指令，今后他们会合并成一个函数。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">GaitAlgorithm</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>步态算法函数，应在该函数中完成机器人所有步态算法。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">ControlTransport</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>传送指令信息，该函数当前调用了TransPosCtlMessage。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Vector3d</span><span class="o">&gt;&amp;</span> <span class="n">GetInvKineticsAnswer</span><span class="p">(</span><span class="kt">int</span> <span class="n">indexlimb</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>该函数获得由indexlimb指定肢体的逆运动学解，indexlimb范围为1～4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)，函数返回一个保存所有逆运动学解的容器。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">private</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">IdentifyInertialParameters</span><span class="p">();</span>
+   <span class="kt">void</span> <span class="nf">IdentifyInertialParametersUsingNoAccDynamics</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>这两个函数在参数辨识中使用，当前应只利用IdentifyInertialParameters进行参数辨识，辨识过程开始时会将机器人状态设置为ROBOT_STATE::IDENTIFICATION，结束后会自动将机器人状态设置为ROBOT_STATE::STOP。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">QuadRobot</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>构造函数当前只调用了ConstructModel函数。</p>
+<div class="section" id="id9">
+<h3>属性相关函数<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">SyncStepTime</span><span class="p">(</span><span class="kt">double</span> <span class="n">steptime</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>该函数同步QuadRobot类对象与LinkModel类对象时间步长为steptime，单位秒。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">GetStepTime</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="n">m_steptime</span><span class="p">;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>函数返回当前时间步长，单位秒。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">ulong</span> <span class="n">GetTimeCounter</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>函数返回运行时间步次数。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">double</span> <span class="n">GetRunTime</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>该函数返回机器人实际运行时间，单位秒。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">IsReady</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>返回True表明机器人已准备好可以正常工作，返回False表明机器人的通信或其它方面尚未准备好。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">GetLock</span><span class="p">();</span>
+   <span class="kt">void</span> <span class="nf">ReleaseLock</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>同步锁函数，当前没有应用。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="n">ROBOT_STATE</span> <span class="n">GetState</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>返回当前机器人状态。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+    <span class="kt">void</span> <span class="n">SetExpectedHeight</span><span class="p">(</span><span class="kt">double</span> <span class="n">height</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>设置机器人期望高度，当前只用于全位控Trot步态。</p>
+</div>
+<div class="section" id="id10">
+<h3>运动学相关函数<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+    <span class="n">Vector3d</span> <span class="n">GetFootPos</span><span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">);</span>
+    <span class="n">Vector3d</span> <span class="nf">GetFootVel</span> <span class="p">(</span><span class="n">u_char</span> <span class="n">index</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>当前这两个函数为空。</p>
+</div>
+<div class="section" id="id11">
+<h3>动力学相关函数<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kr">inline</span> <span class="kt">void</span> <span class="n">SetLowPassFilter</span><span class="p">(</span><span class="kt">double</span> <span class="n">e</span><span class="p">){</span><span class="n">m_cffilter</span> <span class="o">=</span> <span class="n">e</span><span class="p">;}</span>
+   <span class="kr">inline</span> <span class="kt">double</span>  <span class="n">GetLowPassFilter</span><span class="p">(){</span><span class="k">return</span> <span class="n">m_cffilter</span><span class="p">;}</span>
+</pre></div>
+</div>
+<p>未来这两个函数会被删除。</p>
+</div>
+<div class="section" id="quadrobot-class-function-ctrl-label">
+<span id="id12"></span><h3>控制相关函数<a class="headerlink" href="#quadrobot-class-function-ctrl-label" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">SetJointsTargetPos</span><span class="p">(</span><span class="kt">int</span> <span class="n">indexlimb</span><span class="p">,</span> <span class="kt">int</span> <span class="n">indextheta</span><span class="p">,</span> <span class="kt">double</span> <span class="n">targetvalue</span><span class="p">,</span> <span class="kt">double</span> <span class="n">angularVel</span> <span class="o">=</span> <span class="mi">1</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>该函数设置指定的关节控制模式为位控，并以平均速度为angularVel(rad/s)接近目标值targetvalue，indexlimb代表所要设置的关节所在肢体，范围是1~4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)。indextheta代表所要设置的关节角，范围是1~3。函数实现用到了过程过程发生器 <a class="reference internal" href="datastructure/class_TransProcGenerator.html#transprocgenerator-class-label"><span class="std std-ref">TransProcGenerator</span></a>。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">bool</span> <span class="n">SetFootPointPos</span><span class="p">(</span><span class="kt">int</span> <span class="n">indexlimb</span><span class="p">,</span> <span class="k">const</span> <span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">position</span><span class="p">,</span> <span class="kt">double</span> <span class="n">execute_time</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">INV_KIN_SOLUTION_TYPE</span> <span class="n">type</span> <span class="o">=</span> <span class="n">MINI_DISTANCE</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>该函数设置指定的肢体indexlimb(范围1~4)相对于肢体坐标系的足端位置为向量position，执行时间为execute_time(单位秒)，type指定逆运动学存在多个解时如何选择，MINI_DISTANCE表示自动选择离当前关节位置最近距离的解，MANUAL为手动选项，可参考 <a class="reference internal" href="#inv-kin-solution-type-member-label"><span class="std std-ref">功能型成员变量</span></a> 中的INV_KIN_SOLUTION_TYPE。如果有解，那么函数将返回True，否则返回False。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="c1">//This function change control mode to torque control and apply a torque to the one we need.</span>
+   <span class="kt">void</span> <span class="n">SetJointsTorque</span><span class="p">(</span><span class="kt">int</span> <span class="n">indexlimb</span><span class="p">,</span> <span class="kt">int</span> <span class="n">indextheta</span><span class="p">,</span><span class="kt">double</span> <span class="n">torque</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>indexlimb代表所要设置的关节所在肢体，范围是1~4，依次为FL(前左)、FR(前右)、BL(后左)和BR(后右)。indextheta代表所要设置的关节角，范围是1~3。该函数设置指定的关节为力控模式，并施加力矩torque。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">IdentificationMode</span><span class="p">()</span> <span class="p">{</span> <span class="n">robot_state</span> <span class="o">=</span> <span class="n">IDENTIFICATION</span><span class="p">;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>该函数仅简单将机器人状态设置为ROBOT_STATE::IDENTIFICATION，将会开始参数辨识过程。</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">参数辨识过程前，应将机器人躯干固定并抬起，保证腿部运动过程中不碰触地面等物体，保证躯干处于静止状态。</p>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">IdentificationCOMPosition</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>根据足端力辨识当前重心位置，调用该函数时应保持机器人处于静止状态。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">GetBodyCOM</span><span class="p">(</span><span class="n">Vector3d</span><span class="o">&amp;</span> <span class="n">com</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="k">if</span><span class="p">(</span><span class="n">m_bodyCOMValid</span><span class="p">)</span> <span class="p">{</span> <span class="n">com</span> <span class="o">=</span> <span class="n">m_bodyCOM</span><span class="p">;</span> <span class="k">return</span> <span class="nb">true</span><span class="p">;}</span>
+       <span class="k">else</span><span class="p">{</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span> <span class="p">}</span>
+   <span class="p">}</span>
+</pre></div>
+</div>
+<p>将重心位置赋值给com向量，调用该函数前首先应调用IdentificationCOMPosition。函数成功返回True，否则返回False。</p>
+</div>
+<div class="section" id="id13">
+<h3>步态相关函数<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+   <span class="kt">void</span> <span class="n">TrotGait</span><span class="p">(</span><span class="kt">double</span> <span class="n">velocity</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>设置机器人状态为Trot，速度为velocity，单位米每秒。</p>
+<div class="highlight-c++"><div class="highlight"><pre><span></span><span class="k">public</span><span class="o">:</span>
+       <span class="cm">/*TODO !*/</span>
+   <span class="kt">void</span> <span class="n">JumpGait</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="datastructure/class_TreeNode.html" title="数据结构类"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="class_LimbModel.html" title="肢体模型LimbModel类"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" >ISROBOT四足机器人程序开发文档</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="relation.html" >定义的类及类间关系</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

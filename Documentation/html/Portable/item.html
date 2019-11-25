@@ -1,0 +1,113 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>代码结构与移植 &#8212; LeggedRobot  documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="四足机器人模型、运动学与动力学(三连杆模型)" href="../mathdescription/math.html" />
+    <link rel="prev" title="数学类文档" href="../classdescription/datastructure/class_TransProcGenerator.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../mathdescription/math.html" title="四足机器人模型、运动学与动力学(三连杆模型)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../classdescription/datastructure/class_TransProcGenerator.html" title="数学类文档"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" accesskey="U">ISROBOT四足机器人程序开发文档</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../classdescription/datastructure/class_TransProcGenerator.html"
+                        title="previous chapter">数学类文档</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../mathdescription/math.html"
+                        title="next chapter">四足机器人模型、运动学与动力学(三连杆模型)</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="portarc">
+<span id="id1"></span><h1>代码结构与移植<a class="headerlink" href="#portarc" title="Permalink to this headline">¶</a></h1>
+<p>四足机器人程序代码主要框架可以用下图表示。首先进行必要的变量初始化并建立通信，然后根据机器人传感器发来的数据，通过算法实现用户指定的任务，最后将具体控制命令传递给机器人系统。核心代码可以和当前其它开源库相结合。</p>
+<a class="reference internal image-reference" href="../_images/portcore.jpg"><img alt="../_images/portcore.jpg" src="../_images/portcore.jpg" style="width: 1000px;" /></a>
+<a class="reference internal image-reference" href="../_images/arc1.jpg"><img alt="../_images/arc1.jpg" src="../_images/arc1.jpg" style="width: 1000px;" /></a>
+<p>要使四足机器人代码在新平台上工作，需要完成如下工作：</p>
+<p>1.根据不同机器人实物/仿真平台修改配置文件。</p>
+<p>2.修改相应通信程序从而可以获得传感器信息并发送指令。</p>
+<p>3.进行系统辨识，修改LimbModel.cpp中LimbModel构造函数中的基参数值。</p>
+<p>需要修改的函数和配置文件内容如下图所示。</p>
+<a class="reference internal image-reference" href="../_images/portarc.jpg"><img alt="../_images/portarc.jpg" src="../_images/portarc.jpg" style="width: 1000px;" /></a>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../mathdescription/math.html" title="四足机器人模型、运动学与动力学(三连杆模型)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../classdescription/datastructure/class_TransProcGenerator.html" title="数学类文档"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../begin.html">LeggedRobot  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../docDevel.html" >ISROBOT四足机器人程序开发文档</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Xu Chang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>
