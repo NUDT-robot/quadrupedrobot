@@ -8,17 +8,18 @@
 #include <gazebo/physics/physics.hh>
 #include <gazebo/sensors/sensors.hh>
 #include "include/ds/tree.h"
-//#include <engine.h>
-
 
 using namespace std;
-using namespace ignition::math;
+using namespace Eigen;
 using namespace ignition::transport;
 int main()
 {
     QuadRobot robot;
     robot.SyncStepTime(0.001);
     Vector3d initial_position(0,0,0.50);
+    Eigen::Vector3d init_pos;
+    init_pos << initial_position.x(), initial_position.y(), initial_position.z();
+    robot.SetInitialPos(init_pos);
     for (int i = 1; i <= 4; i++)
     {
 
@@ -37,15 +38,17 @@ int main()
     bool exit = false;
     double vel = 0;
     int limbn = 0, jointn = 0;
-    Vector3d targetpos(0, 0, 0.5);
+    ignition::math::Vector3d targetpos(0, 0, 0.5);
+    Vector3d eigenTargetPos;
     double torque = 0;
     Vector3d position,verify_position;
     std::vector<Vector3d> theta_v;
     ulong counter = 0, totalcounter = 0, solvecounter = 0;
     double time = 0;
     double v1 = 0, v2 = 0, v3 = 0;
-    double trotVel = 0;
+    Vector3d trotVel, attitude;
     Vector3d bodyCOM;
+    VectorXd X_ref(15);
     while(!exit)
     {
         cout << "Enter a command number : "<< endl;
@@ -86,7 +89,8 @@ int main()
         case 3:
             cout << "Set foot point. Input: limb, x, y, z "<< endl;
             cin >> limbn >>  targetpos ;
-            if(!robot.SetFootPointPos(limbn, targetpos , 2, QuadRobot::MANUAL))
+            eigenTargetPos << targetpos.X(),  targetpos.Y(),  targetpos.Z();
+            if(!robot.SetFootPointPos(limbn, eigenTargetPos , 2, QuadRobot::MANUAL))
                cout << "No solution exists !" << endl;
             break;
         case 4:
@@ -94,14 +98,44 @@ int main()
             cin >> limbn >> jointn >>torque ;
             robot.SetJointsTorque(limbn, jointn, torque);
             break;
+        case 9:
+             cout << "Walk gait, input yaw and velocity : " << endl;
+             cin >> v1;
+             cin >> v2;
+             trotVel << v2, 0, 0;
+             attitude << 0, 0, v1;
+             robot.WalkGait(attitude, trotVel);
+            break;
         case 10:
-            cout << "Trot velocity : " << endl;
-            cin >> trotVel;
-            robot.TrotGait(trotVel);
+            cout << "Trot gait, input yaw and velocity : " << endl;
+            cin >> v2 >> v1;
+            // pitch v3
+            v3 = 0;
+            trotVel << v1, 0, 0;
+            attitude << 0, v3, v2;
+            robot.TrotGait(attitude, trotVel);
             break;
         case 11:
-            cout << "Jump gait :" << endl;
-            robot.JumpGait();
+            cout << "Pronk gait, input z velocity (negative value) : " << endl;
+            cin >> v1;
+            // yaw v2
+            // cin >> v2;
+            // pitch v3
+            trotVel << v1, 0, -1;
+            attitude << 0, 0, 0;
+            robot.PronkGait(attitude, trotVel);
+            break;
+        case 12:
+            cout << "Bound gait, input yaw and velocity : " << endl;
+            cin >> v2 >> v1;
+            trotVel << v1, 0, - 0.7;
+            attitude << 0, 0.2, v2;
+            robot.BoundGait(attitude, trotVel);
+            break;
+        case 20:
+            cout << "MPC mode" << endl;
+            X_ref << 0, 0, 0, robot.r_bodypos[0],0, 0, 0, 0, 0, 0, 0, 0, 9.8;
+            robot.MpcMode(X_ref);
             break;
         case 98:
             //Indentification coenter of mass
@@ -129,9 +163,9 @@ int main()
                 for(int j =-1000; j < 1000; j+=random()%10 )
                     for(int k = 0; k < 1000; k+=random()%10)
                         {
-                            position.X() = i/1000.0;
-                            position.Y() = j/1000.0;
-                            position.Z() = k/1000.0;
+                            position.x() = i/1000.0;
+                            position.y() = j/1000.0;
+                            position.z() = k/1000.0;
                             if(!robot.limb_backleft.CalInvertKinetics(position))
                             {
                                 totalcounter++;
@@ -143,12 +177,12 @@ int main()
                             {
                                 if(theta_v.size() == 0)
                                     break;
-                                robot.limb_backleft.SetThetaPos(1,theta_v[i].X());
-                                robot.limb_backleft.SetThetaPos(2,theta_v[i].Y());
-                                robot.limb_backleft.SetThetaPos(3,theta_v[i].Z());
+                                robot.limb_backleft.SetThetaPos(1,theta_v[i].x());
+                                robot.limb_backleft.SetThetaPos(2,theta_v[i].y());
+                                robot.limb_backleft.SetThetaPos(3,theta_v[i].z());
                                 robot.limb_backleft.CalMainPointPos();
                                 verify_position = robot.limb_backleft.GetPointPos(3);
-                                if(position.Equal(verify_position,0.0001))
+                                if((position-verify_position).isZero(1e-4))
                                 {
                                 }
                                 else

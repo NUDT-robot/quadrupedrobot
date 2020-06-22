@@ -95,19 +95,24 @@ namespace gazebo
                 if(i < 3)
                 {
                     fl_jointsV[i]->SetForce(0, ctrl_torque[i]);
+                    cout << "fl_joints : " << endl << ctrl_torque[i] << endl;
                 }
                 else if(i < 6)
                 {
                     fr_jointsV[i-3]->SetForce(0, ctrl_torque[i]);
+                    cout << "fr_joints : " << endl << ctrl_torque[i] << endl;
                 }
                 else if(i < 9)
                 {
                     bl_jointsV[i-6]->SetForce(0, ctrl_torque[i]);
+                    cout << "bl_joints : " << endl << ctrl_torque[i] << endl;
                 }
                 else
                 {
                     br_jointsV[i-9]->SetForce(0, ctrl_torque[i]);
+                    cout << "br_joints : " << endl << ctrl_torque[i] << endl;
                 }
+
             }
         }
     /*Fill and publish messages*/

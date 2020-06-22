@@ -8,10 +8,10 @@
 #define LIMBMODEL_HH_
 
 #include <iostream>
-#include <ignition/math.hh>
+#include <Eigen/Dense>
 #include "ds/tree.h"
 
-using namespace ignition::math;
+//using namespace Eigen;
 
 class QuadRobot;
 
@@ -44,14 +44,14 @@ public:
         endNode_V.clear();
         ClearTree();
     }
-    void GetAnswer(std::vector<Vector3d>& answer, const Vector3d& position, double length[3], double tol = 0.0001)
+    void GetAnswer(std::vector<Eigen::Vector3d>& answer, const Eigen::Vector3d& position, double length[3], double tol = 0.0001)
     {
-        double px = position.X(), py = position.Y(), pz = position.Z();
+        double px = position.x(), py = position.x(), pz = position.z();
         double l1 = length[0], l2 = length[1], l3 = length[2];
         double justinter = 0;
-        Vector3d verifyposition;
+        Eigen::Vector3d verifyposition;
         TreeNode<double>* pRoot = GetRoot();
-        Vector3d answerbuffer;
+        Eigen::Vector3d answerbuffer;
         answer.clear();
         FindAnswer(pRoot);
         if(endNode_V.size() == 0)
@@ -59,18 +59,18 @@ public:
          //Store answers. The order of element in Vector4d is X=theta1, Y=theta2,Z= theta3
         for(ulong i = 0; i < endNode_V.size(); i++)
         {
-            answerbuffer.Y() = endNode_V[i]->GetData();
-            answerbuffer.Z() = endNode_V[i]->GetParent()->GetData();
-            answerbuffer.X() = endNode_V[i]->GetParent()->GetParent()->GetData();
+            answerbuffer.y() = endNode_V[i]->GetData();
+            answerbuffer.z() = endNode_V[i]->GetParent()->GetData();
+            answerbuffer.x() = endNode_V[i]->GetParent()->GetParent()->GetData();
             /*
             * We must discard some solutions, because in order to solving invert kinetics we get new equations that are not equivalent to that of original !!!
             *  For computation speed, calculating P point explicitly instead of calling function LimbModel::CalMainPointPos.
             */
-            verifyposition.X() = l2*sin(answerbuffer.Y()) - l3*sin(answerbuffer.Y()-answerbuffer.Z());
-            justinter = -l2*cos(answerbuffer.Y()) + l3*cos(answerbuffer.Y()-answerbuffer.Z());
-            verifyposition.Y() = -(l1+justinter)*sin(answerbuffer.X());
-            verifyposition.Z() = (l1+justinter)*cos(answerbuffer.X());
-            if(!position.Equal(verifyposition, tol))
+            verifyposition.x() = l2*sin(answerbuffer.y()) - l3*sin(answerbuffer.y()-answerbuffer.z());
+            justinter = -l2*cos(answerbuffer.y()) + l3*cos(answerbuffer.y()-answerbuffer.z());
+            verifyposition.y() = -(l1+justinter)*sin(answerbuffer.x());
+            verifyposition.z() = (l1+justinter)*cos(answerbuffer.x());
+            if(!(position-verifyposition).isZero(tol))
                 continue;
             answer.push_back(answerbuffer);
         }
@@ -84,9 +84,9 @@ class LinkModel
     double m_length = 0;      // length of rod
     double m_COP = 0;          // mass center of position, indicating the length between the rotation center point and the COP
     double m_mass = 0;        // mass
-    Matrix3d m_inertial;      // Inertial Tensor Matrix
+    Eigen::Matrix3d m_inertial;      // Inertial Tensor Matrix
 public:
-    LinkModel(double length = 0.1, double cop = 0.05, double mass = 1, Matrix3d inertial = Matrix3d::Identity )
+    LinkModel(double length = 0.1, double cop = 0.05, double mass = 1, Eigen::Matrix3d inertial = Eigen::Matrix3d::Identity() )
     {
         m_length = length;
         m_COP = cop;
@@ -96,11 +96,11 @@ public:
     void ModifyLength(double length){ m_length = length;}
     void ModifyCOP(double cop){m_COP = cop;}
     void ModifyMass(double mass){m_mass = mass;}
-    void ModifyInertial(Matrix3d inertial ){m_inertial = inertial;}
+    void ModifyInertial(Eigen::Matrix3d inertial ){m_inertial = inertial;}
     double GetLength(){return  m_length;}
     double GetCOP(){return m_COP ;}
     double GetMass(){return m_mass ;}
-    Matrix3d GetInertial( ){return m_inertial ;}
+    Eigen::Matrix3d GetInertial( ){return m_inertial ;}
 };
 
 /*LimbModel is composed of LinkModels
@@ -132,34 +132,36 @@ private:
 private:
 /*Kinematics parameters*/
     //member for origin of O1XYZ frame
-    Vector3d m_originPos;     //Origin position of O1XYZ frame in OXYZ frame, Default value 0
-    Vector3d m_originVel;     //Origin velocity of O1XYZ frame in OXYZ frame, Default value 0
-    Vector3d m_originAccVel;     //Origin Accelerated velocity of O1XYZ frame in OXYZ frame, Default value 0
+    Eigen::Vector3d m_originPos;     //Origin position of O1XYZ frame in OXYZ frame, Default value 0
+    Eigen::Vector3d m_originVel;     //Origin velocity of O1XYZ frame in OXYZ frame, Default value 0
+    Eigen::Vector3d m_originAccVel;     //Origin Accelerated velocity of O1XYZ frame in OXYZ frame, Default value 0
     //member for limb kinetics in O1XYZ frame
     double m_thetaPos[3] = {0,PI*5/4,3*PI/2};     // default value 0, 225, 90, 90 degree for theta1, theta2, theta3. When use 200Hz, we get joint angle precison 0.001 rad
     double m_thetaVel[3];     //theta Velocity array represented for angle velocities of theta1-theta3. Default value 0
     double m_thetaVelFilterBuffer[3][FILTERSIZE];    //Because difference error, theta angle velocity need average filter buffer
     double m_thetaAccVel[3];     //theta Accelerated Velocity array represented for angle velocities of theta1-theta4. Default value 0
     double m_thetaAccVelFilterBuffer[3][FILTERSIZE];   //Because difference error, theta Accelerated Velocity need average filter buffer
-    Vector3d m_pointPos[3];       //Position of point A,B,C. Default value 0 is invalid.
-    Vector3d m_pointVel[3];       //velocity array represented for velocities of point A,B,C. Default value 0
-    Vector3d m_pointAccVel[3];       //accelerated velocity array represented for velocities of point A,B,C. Default value 0
+    Eigen::Vector3d m_pointPos[3];       //Position of point A,B,C. Default value 0 is invalid.
+    Eigen::Vector3d m_pointVel[3];       //velocity array represented for velocities of point A,B,C. Default value 0
+    Eigen::Vector3d m_pointAccVel[3];       //accelerated velocity array represented for velocities of point A,B,C. Default value 0
     InverAnswer inv_ans_tree;       //Inverse kinetics solution tree
     //Invert kinetics answers, vector size equals quantity of the answer
-    std::vector<Vector3d> m_invans;
+    std::vector<Eigen::Vector3d> m_invans;
     //Coordinate transform, from B frame to Body frame. B frame is attached to the last rod.
-    Matrix3d R_BtoBody;
+    Eigen::Matrix3d R_BtoBody;
 /*Dynamics parameters*/
     //This parameter is filled by QuadRobot class
-    Vector3d  generalizedJointWrench;
+    Eigen::Vector3d  generalizedJointWrench;
     //Base parameters is attained by identification
     double baseParameters[3][BASEPARASIZE];
+    //Force/Torque Jacobi Matrix
+    Eigen::Matrix3d Jac;
     //P point Contact force, this force is calculated by dynamics formulation
-    Vector3d contactforce_P;
+    Eigen::Vector3d contactforce_P;
 #define CFFILTERSIZE 50     //contact force filter buffer size
         //index_CFFB indicates 'contactforce_FilterBuffer' index and contactforce_PFilterBuffer use for average filtering
     ulong index_CFFB = 0;
-    Vector3d contactforce_FilterBuffer[CFFILTERSIZE];
+    Eigen::Vector3d contactforce_FilterBuffer[CFFILTERSIZE];
         //contact force low pass filter, this filter should be changed with detection frequency, 0.965 is approximately 0.08s detection delay with threshold 130N
     double filter_cf = 0.965;
     //Generalized contact force
@@ -182,26 +184,26 @@ private:
      bool resetIntegral = 1;
 private:
     inline void SetValid(bool valid){m_dataValid = valid;}
-    inline void SetOriginPos(Vector3d& pos)   { m_originPos = pos;}
-    inline void SetOriginVel(Vector3d& vel)   { m_originVel = vel;}
-    inline void SetOriginAccVel(Vector3d& accvel)   { m_originAccVel = accvel;}
+    inline void SetOriginPos(Eigen::Vector3d& pos)   { m_originPos = pos;}
+    inline void SetOriginVel(Eigen::Vector3d& vel)   { m_originVel = vel;}
+    inline void SetOriginAccVel(Eigen::Vector3d& accvel)   { m_originAccVel = accvel;}
     //This function should be called by the class which include LimbModel class to implement dynamics calculating.
-    inline void SetGeneralizedForce(Vector3d gf) { generalizedJointWrench = gf; }
-    inline Vector3d GetGeneralizedForce() { return generalizedJointWrench; }
+    inline void SetGeneralizedForce(Eigen::Vector3d gf) { generalizedJointWrench = gf; }
+    inline Eigen::Vector3d GetGeneralizedForce() { return generalizedJointWrench; }
 public:
     LimbModel(u_char numsOfLink = 3);
     ~ LimbModel(){for(int i = 0; i < m_numOfLink; i++) delete m_prod[i];}
 public:
 //property functions
-    bool ModifyLinkParam(u_char rodindex,  double length, double cop, double mass, Matrix3d inertial );
+    bool ModifyLinkParam(u_char rodindex,  double length, double cop, double mass, Eigen::Matrix3d inertial );
     void SetSteptime(double steptime) {assert(steptime > 0); m_steptime = steptime;m_factorTime= 1.0/m_steptime;}
     LIMB_STATE GetState(){ return limb_state; }
 //Get kinetic functions
     u_char GetNumsOfLink()  {return m_numOfLink; }
     LinkModel** GetLink(){ return m_prod; }
-    Vector3d GetOriginPos()   {return m_originPos;}
-    Vector3d GetOriginVel()   {return m_originVel;}
-    Vector3d GetOriginAccVel()   {return m_originAccVel;}
+    Eigen::Vector3d GetOriginPos()   {return m_originPos;}
+    Eigen::Vector3d GetOriginVel()   {return m_originVel;}
+    Eigen::Vector3d GetOriginAccVel()   {return m_originAccVel;}
     //if wrong index set, return 1e10.
     double GetThetaPos(u_char index)
         {
@@ -214,10 +216,10 @@ public:
     double GetThetaAccVel(u_char index)
         {if(!m_dataValid || index == 0 || index >3){std::cout <<"data is not valid or bad index in function GetThetaAccVel, m_dataValid = "<< m_dataValid <<" , index = "<< index <<std::endl; return 1e10;} return m_thetaAccVel[index-1];}
 //
-    inline Vector3d GetPointPos(u_char index)   {return m_pointPos[index-1];}
-    inline Vector3d GetPointVel(u_char index)   {return m_pointVel[index-1];}
-    inline Vector3d GetPointAccVel(u_char index)   {return m_pointAccVel[index-1];}
-    inline Matrix3d GetCoordTransformMatrix() {return R_BtoBody;}
+    inline Eigen::Vector3d GetPointPos(u_char index)   {return m_pointPos[index-1];}
+    inline Eigen::Vector3d GetPointVel(u_char index)   {return m_pointVel[index-1];}
+    inline Eigen::Vector3d GetPointAccVel(u_char index)   {return m_pointAccVel[index-1];}
+    inline Eigen::Matrix3d GetCoordTransformMatrix() {return R_BtoBody;}
 //Set kinetic functions
     void SetThetaPos(u_char index, double pos)
         { if(index == 0 || index >3){std::cout <<"bad index in function SetThetaPos"<<std::endl; return;} m_thetaPos[index-1] = pos;}
@@ -238,24 +240,25 @@ private:
     void SetupModel(void);
     //only called in CalInvertKinetics function
     bool InvCalTheta2(double cx, double d, double e, TreeNode<double>* ptheta3);
-    bool InvCalTheta1and3Then2(const Vector3d& position, TreeNode<double>* proot);
+    bool InvCalTheta1and3Then2(const Eigen::Vector3d& position, TreeNode<double>* proot);
     //In this function, it calculate coordinate transform matrix
     void CoordinateTransform();
 public:
     //calculate point position from theta angle
     void CalMainPointPos();
     //This function return A,B,C point position. Index range from 1 to 3
-    Vector3d GetMainPointPos(int index) {if(index <= 0 || index >3) {std::cout <<"bad index in function SetThetaAccVel"<<std::endl; return Vector3d(0,0,0);}  return m_pointPos[index-1];}
+    Eigen::Vector3d GetMainPointPos(int index) {if(index <= 0 || index >3) {std::cout <<"bad index in function SetThetaAccVel"<<std::endl; return Eigen::Vector3d(0,0,0);}  return m_pointPos[index-1];}
     //Given postition, calculate invert kinetics and the result is stroed to member m_invans
     //If success, return true and the size of m_invans is not zero, otherwise return  false and m_invans is empty.
-    bool CalInvertKinetics(const Vector3d& postition);
-    const  std::vector<Vector3d>& GetInvAnswer() { return m_invans;}
+    bool CalInvertKinetics(const Eigen::Vector3d& postition);
+    const  std::vector<Eigen::Vector3d>& GetInvAnswer() { return m_invans;}
     /*Dynamics calculating*/
     //This function calculating foot contact force using dynamics formulation
     void DynamicsCalFootContactForce();
     void DynamicsCalFootContactForceWithoutAcc();
-    inline Vector3d GetContactForce() { return contactforce_P; }
-
+    void EstimateFootState();
+    inline Eigen::Vector3d GetContactForce() { return contactforce_P; }
+    LIMB_STATE GetFootState();
 friend class QuadRobot;
 };
 

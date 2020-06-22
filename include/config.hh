@@ -7,6 +7,9 @@
 //定义该宏将启动关于GAZEBO仿真环境的默认配置，如果使用实物机器人则应取消这个宏定义。
 #define ROBOTENV_GAZEBO
 
+// If it is defined, graph data analysis, for example gnuplot data file, will be generated.
+#define GRAPH_ANALYSIS
+
 // INS_STEPTIME 应该被设置为惯性导航系统(Inertial Navigation System)传输数据周期。
 #define INS_STEPTIME 0.005
 

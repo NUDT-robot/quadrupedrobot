@@ -7,10 +7,11 @@
 
 #ifndef SENSOR_H
 #define SENSOR_H
+
 #include <iostream>
 #include <gazebo/gazebo.hh>
 #include <ignition/transport.hh>
-#include <ignition/math.hh>
+#include <Eigen/Dense>
 
 class QuadRobot;
 class Sensor_INS
@@ -31,11 +32,11 @@ class Sensor_INS
 private:
     //callback function for node subscribe;
     void ProcessGazeboINSData(const gazebo::msgs::IMU& imu_msg, const ignition::transport:: MessageInfo &_info);
-    /*In gazebo, Euler angle represented there angles around X axis, Y axis and Z axis of parent frame in turn,
+    /*In gazebo, Euler angle represented three angles around X axis, Y axis and Z axis of parent frame in turn,
      *which is not coincidence with real Ekinox INS. So we should tackle this differece in simulation,
      * and that what GetAttitudeFromGazebo function does
     */
-    inline bool GetINSFromGazebo(double& roll, double& pitch, double& yaw, ignition::math::Vector3d& linearAcc);
+    inline bool GetINSFromGazebo(double& roll, double& pitch, double& yaw, Eigen::Vector3d& linearAcc);
 
 public:
     /*Initialize INS : Connect to the INS and get valid data then set "m_ready" true*/

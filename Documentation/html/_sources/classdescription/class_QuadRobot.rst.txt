@@ -5,7 +5,7 @@
 四足机器人类
 =======================================
 
-四足机器人类QuadRobot主要由4个 :ref:`LinkModel类 <LinkModel-class-label>` m_steptime对象和一个IMU传感器类组成，负责处理传感器信息、实现步态算法、发送控制指令等。有关模型的描述与推导请参考文档 :ref:`math-doc-label`。
+四足机器人类QuadRobot主要由4个 :ref:`LinkModel类 <LinkModel-class-label>` 对象和一个IMU传感器类组成，负责处理传感器信息、实现步态算法、发送控制指令等。有关模型的描述与推导请参考文档 :ref:`math-doc-label`。
 
 .. _QuadRobot-class-member-label:
 

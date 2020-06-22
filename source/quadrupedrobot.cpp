@@ -1,4 +1,9 @@
 #include "include/quadrupedrobot.hh"
+#include <cmath>
+#include <sstream>
+#include <qpOASES.hpp>
+using namespace std;
+using namespace Eigen;
 
 /*
  * QRDEBUG_JOINTPOS : four limbs  joint position debug
@@ -6,9 +11,13 @@
 //This macro should be modified according with limbModel.hh
 #define FILTERSIZE 20
 
-QuadRobot::QuadRobot()
+QuadRobot::QuadRobot() : mpc(4), gaig(this)
  {
+     BodytoWorldDCM = Eigen::Matrix3d::Identity();
      ConstructModel();
+#ifdef GRAPH_ANALYSIS
+    gpfileindex = gp.CreatePlotFile("gpPlotfile");
+#endif
  }
 
 void QuadRobot::SyncStepTime(double steptime)
@@ -27,7 +36,7 @@ void QuadRobot::InitializeETP_TORQUE()
 {
     //Store initial height
     limb_frontleft.CalMainPointPos();
-    m_expheight = limb_frontleft.GetPointPos(3).Z();
+    m_expheight = limb_frontleft.GetPointPos(3).z();
 }
 void QuadRobot::ConstructModel()
 {
@@ -39,9 +48,19 @@ void QuadRobot::ConstructModel()
     limborg_frontright = Vector3d(0.441, 0.195, -0.18725);
     limborg_backleft  = Vector3d(-0.441, -0.195, -0.18725);
     limborg_backright = Vector3d(-0.441, 0.195, -0.18725);
+    //Fill vectors for conveinience
+    limborginVector.push_back(&limborg_frontleft);
+    limborginVector.push_back(&limborg_frontright);
+    limborginVector.push_back(&limborg_backleft);
+    limborginVector.push_back(&limborg_backright);
+    limbVector.push_back(&limb_frontleft);
+    limbVector.push_back(&limb_frontright);
+    limbVector.push_back(&limb_backleft);
+    limbVector.push_back(&limb_backright);
+
     //Configure limbModel parameter, cop[3], mass[3] is actually not used now.
     double L[3] ={LINK1_LEN, LINK2_LEN, LINK3_LEN }, cop[3] = {0.02975, 0.135, 0.1675}, mass[3] = {1.053, 5.245, 3.178};
-    Matrix3d inertial[3] = {Matrix3d::Identity, Matrix3d::Identity, Matrix3d::Identity};  //Inertial matrix is actually not used now.
+    Matrix3d inertial[3] = { Matrix3d::Identity(), Matrix3d::Identity(), Matrix3d::Identity() };  //Inertial matrix is actually not used now.
     //Same parameters for four limbs
     for (u_char i = 0; i < 3; i++)
     {
@@ -64,6 +83,7 @@ void QuadRobot::ConstructModel()
     memset(ctrl_jointsTor, 0,  sizeof(ctrl_jointsTor));
     //Configure Sensors
     m_sensorINS.SetParent(this);
+
     //Setup communcation
     jointsPositionNode.Subscribe("/QuadRobot/12joints_positions", &QuadRobot::ProcessJointsPositionData, this);
     jointSensorNode.Subscribe("/QuadRobot/12joints_sensors", &QuadRobot::ProcessJointSensorsData, this);
@@ -209,42 +229,42 @@ void QuadRobot::ProcessJointSensorsData(const ::QRsensor::msgs::AllJointSensors&
            case 0:
            case 1:
            case 2:
-               fl_Jwrench[i].force.X()  = jointdata.jointwrench(i).wrench().force().x();
-               fl_Jwrench[i].force.Y()  = jointdata.jointwrench(i).wrench().force().y();
-               fl_Jwrench[i].force.Z()  = jointdata.jointwrench(i).wrench().force().z();
-               fl_Jwrench[i].torque.X()  = jointdata.jointwrench(i).wrench().torque().x();
-               fl_Jwrench[i].torque.Y()  = jointdata.jointwrench(i).wrench().torque().y();
-               fl_Jwrench[i].torque.Z()  = jointdata.jointwrench(i).wrench().torque().z();
+               fl_Jwrench[i].force.x()  = jointdata.jointwrench(i).wrench().force().x();
+               fl_Jwrench[i].force.y()  = jointdata.jointwrench(i).wrench().force().y();
+               fl_Jwrench[i].force.z()  = jointdata.jointwrench(i).wrench().force().z();
+               fl_Jwrench[i].torque.x()  = jointdata.jointwrench(i).wrench().torque().x();
+               fl_Jwrench[i].torque.y()  = jointdata.jointwrench(i).wrench().torque().y();
+               fl_Jwrench[i].torque.z()  = jointdata.jointwrench(i).wrench().torque().z();
                break;
            case 3:
            case 4:
            case 5:
-               fr_Jwrench[i-3].force.X()  = jointdata.jointwrench(i).wrench().force().x();
-               fr_Jwrench[i-3].force.Y()  = jointdata.jointwrench(i).wrench().force().y();
-               fr_Jwrench[i-3].force.Z()  = jointdata.jointwrench(i).wrench().force().z();
-               fr_Jwrench[i-3].torque.X()  = jointdata.jointwrench(i).wrench().torque().x();
-               fr_Jwrench[i-3].torque.Y()  = jointdata.jointwrench(i).wrench().torque().y();
-               fr_Jwrench[i-3].torque.Z()  = jointdata.jointwrench(i).wrench().torque().z();
+               fr_Jwrench[i-3].force.x()  = jointdata.jointwrench(i).wrench().force().x();
+               fr_Jwrench[i-3].force.y()  = jointdata.jointwrench(i).wrench().force().y();
+               fr_Jwrench[i-3].force.z()  = jointdata.jointwrench(i).wrench().force().z();
+               fr_Jwrench[i-3].torque.x()  = jointdata.jointwrench(i).wrench().torque().x();
+               fr_Jwrench[i-3].torque.y()  = jointdata.jointwrench(i).wrench().torque().y();
+               fr_Jwrench[i-3].torque.z()  = jointdata.jointwrench(i).wrench().torque().z();
                break;
            case 6:
            case 7:
            case 8:
-               bl_Jwrench[i-6].force.X()  = jointdata.jointwrench(i).wrench().force().x();
-               bl_Jwrench[i-6].force.Y()  = jointdata.jointwrench(i).wrench().force().y();
-               bl_Jwrench[i-6].force.Z()  = jointdata.jointwrench(i).wrench().force().z();
-               bl_Jwrench[i-6].torque.X()  = jointdata.jointwrench(i).wrench().torque().x();
-               bl_Jwrench[i-6].torque.Y()  = jointdata.jointwrench(i).wrench().torque().y();
-               bl_Jwrench[i-6].torque.Z()  = jointdata.jointwrench(i).wrench().torque().z();
+               bl_Jwrench[i-6].force.x()  = jointdata.jointwrench(i).wrench().force().x();
+               bl_Jwrench[i-6].force.y()  = jointdata.jointwrench(i).wrench().force().y();
+               bl_Jwrench[i-6].force.z()  = jointdata.jointwrench(i).wrench().force().z();
+               bl_Jwrench[i-6].torque.x()  = jointdata.jointwrench(i).wrench().torque().x();
+               bl_Jwrench[i-6].torque.y()  = jointdata.jointwrench(i).wrench().torque().y();
+               bl_Jwrench[i-6].torque.z()  = jointdata.jointwrench(i).wrench().torque().z();
                break;
            case 9:
            case 10:
            case 11:
-               br_Jwrench[i-9].force.X()  = jointdata.jointwrench(i).wrench().force().x();
-               br_Jwrench[i-9].force.Y()  = jointdata.jointwrench(i).wrench().force().y();
-               br_Jwrench[i-9].force.Z()  = jointdata.jointwrench(i).wrench().force().z();
-               br_Jwrench[i-9].torque.X()  = jointdata.jointwrench(i).wrench().torque().x();
-               br_Jwrench[i-9].torque.Y()  = jointdata.jointwrench(i).wrench().torque().y();
-               br_Jwrench[i-9].torque.Z()  = jointdata.jointwrench(i).wrench().torque().z();
+               br_Jwrench[i-9].force.x()  = jointdata.jointwrench(i).wrench().force().x();
+               br_Jwrench[i-9].force.y()  = jointdata.jointwrench(i).wrench().force().y();
+               br_Jwrench[i-9].force.z()  = jointdata.jointwrench(i).wrench().force().z();
+               br_Jwrench[i-9].torque.x()  = jointdata.jointwrench(i).wrench().torque().x();
+               br_Jwrench[i-9].torque.y()  = jointdata.jointwrench(i).wrench().torque().y();
+               br_Jwrench[i-9].torque.z()  = jointdata.jointwrench(i).wrench().torque().z();
                break;
        default:
                std::cout << "ProcessJointSensorsData Maybe Wrong !!!" << std::endl;
@@ -269,12 +289,12 @@ void QuadRobot::AnalyzeContactsMessage(const gazebo::msgs::Contacts&  contactdat
     for(int j= 0; j < contactdata.contact(0).wrench_size(); j++)
     {
         // I think body_1 is the body owning contact sensor, because when quadrobot touchs ground , it is body_1.
-       oneforce.X() += contactdata.contact(0).wrench(j).body_1_wrench().force().x();
-       oneforce.Y() += contactdata.contact(0).wrench(j).body_1_wrench().force().y();
-       oneforce.Z() += contactdata.contact(0).wrench(j).body_1_wrench().force().z();
-       onetorque.X() += contactdata.contact(0).wrench(j).body_1_wrench().torque().x();
-       onetorque.Y() += contactdata.contact(0).wrench(j).body_1_wrench().torque().y();
-       onetorque.Z() += contactdata.contact(0).wrench(j).body_1_wrench().torque().z();
+       oneforce.x() += contactdata.contact(0).wrench(j).body_1_wrench().force().x();
+       oneforce.y() += contactdata.contact(0).wrench(j).body_1_wrench().force().y();
+       oneforce.z() += contactdata.contact(0).wrench(j).body_1_wrench().force().z();
+       onetorque.x() += contactdata.contact(0).wrench(j).body_1_wrench().torque().x();
+       onetorque.y() += contactdata.contact(0).wrench(j).body_1_wrench().torque().y();
+       onetorque.z() += contactdata.contact(0).wrench(j).body_1_wrench().torque().z();
     }
     out_totalforce = oneforce;
     out_totaltorque = onetorque;
@@ -312,11 +332,12 @@ void QuadRobot::Step()
 {
     //When step function is called, add simulation time by AddTime function
     AddTime();
+
     //Calculate velocities and accelerated velocities of origins of limbs
-    Vector3d O1Vel = m_angleVel.Cross(limborg_frontleft) + m_velocity;
-    Vector3d O2Vel = m_angleVel.Cross(limborg_frontright) + m_velocity;
-    Vector3d O3Vel = m_angleVel.Cross(limborg_backleft) + m_velocity;
-    Vector3d O4Vel = m_angleVel.Cross(limborg_backright) + m_velocity;
+    Vector3d O1Vel = m_angleVel.cross(limborg_frontleft) + m_velocity;
+    Vector3d O2Vel = m_angleVel.cross(limborg_frontright) + m_velocity;
+    Vector3d O3Vel = m_angleVel.cross(limborg_backleft) + m_velocity;
+    Vector3d O4Vel = m_angleVel.cross(limborg_backright) + m_velocity;
     /* TODO, AccVel is inaccurate now */
     Vector3d O1AccVel = m_accVel;// + m_angleVel.Cross(m_angleVel.Cross(limborg_frontleft)) ;
     Vector3d O2AccVel = m_accVel;// + m_angleVel.Cross(m_angleVel.Cross(limborg_frontright)) ;
@@ -334,24 +355,24 @@ void QuadRobot::Step()
     limb_backright.SetOriginAccVel(O4AccVel);
             //Set four limbs generalized force
     Vector3d gf;
-    gf.X() = fl_Jwrench[0].torque.X();
-    gf.Y() = -fl_Jwrench[1].torque.Y();
-    gf.Z() = fl_Jwrench[2].torque.Y();
+    gf.x() = fl_Jwrench[0].torque.x();
+    gf.y() = -fl_Jwrench[1].torque.y();
+    gf.z() = fl_Jwrench[2].torque.y();
     limb_frontleft.SetGeneralizedForce(gf);
 
-    gf.X() = fr_Jwrench[0].torque.X();
-    gf.Y() = -fr_Jwrench[1].torque.Y();
-    gf.Z() = fr_Jwrench[2].torque.Y();
+    gf.x() = fr_Jwrench[0].torque.x();
+    gf.y() = -fr_Jwrench[1].torque.y();
+    gf.z() = fr_Jwrench[2].torque.y();
     limb_frontright.SetGeneralizedForce(gf);
 
-    gf.X() = bl_Jwrench[0].torque.X();
-    gf.Y() = -bl_Jwrench[1].torque.Y();
-    gf.Z() = bl_Jwrench[2].torque.Y();
+    gf.x() = bl_Jwrench[0].torque.x();
+    gf.y() = -bl_Jwrench[1].torque.y();
+    gf.z() = bl_Jwrench[2].torque.y();
     limb_backleft.SetGeneralizedForce(gf);
 
-    gf.X() = br_Jwrench[0].torque.X();
-    gf.Y() = -br_Jwrench[1].torque.Y();
-    gf.Z() = br_Jwrench[2].torque.Y();
+    gf.x() = br_Jwrench[0].torque.x();
+    gf.y() = -br_Jwrench[1].torque.y();
+    gf.z() = br_Jwrench[2].torque.y();
     limb_backright.SetGeneralizedForce(gf);
     //When parameters update above have been finished, calling four limbs 'Step' function in turn
     limb_frontleft.Step();
@@ -359,10 +380,22 @@ void QuadRobot::Step()
     limb_backleft.Step();
     limb_backright.Step();
     //In gazebo, contact sensor return the force in frame which the sensor is in. Here transform the contact force from frame B to Body
-    Matrix3d fl_BtoBody = limb_frontleft.GetCoordTransformMatrix();
-    Matrix3d fr_BtoBody = limb_frontright.GetCoordTransformMatrix();
-    Matrix3d bl_BtoBody = limb_backleft.GetCoordTransformMatrix();
-    Matrix3d br_BtoBody = limb_backright.GetCoordTransformMatrix();
+    fl_BtoBody = limb_frontleft.GetCoordTransformMatrix();
+    fr_BtoBody = limb_frontright.GetCoordTransformMatrix();
+    bl_BtoBody = limb_backleft.GetCoordTransformMatrix();
+    br_BtoBody = limb_backright.GetCoordTransformMatrix();
+    //Set body to world rotation matrix, alpha_rolln means alpha matrix with negative roll
+    Matrix3d alpha_rolln, alpha_pitchn, alpha_yawn;
+    alpha_rolln << 1,            0,                      0,
+                                 0,  cos(m_roll),  -sin(m_roll),
+                                 0,  sin(m_roll) ,  cos(m_roll);
+    alpha_pitchn << cos(m_pitch), 0, sin(m_pitch),
+                                                0,          1,           0            ,
+                                    -sin(m_pitch), 0, cos(m_pitch);
+    alpha_yawn << cos(m_yaw), -sin(m_yaw), 0,
+                                  sin(m_yaw),  cos(m_yaw),  0,
+                                          0,                   0,                1;
+    BodytoWorldDCM.noalias() = alpha_yawn*alpha_pitchn*alpha_rolln;
          //Average filter and low pass filter for contact force/torque
     Vector3d cfbuf[8];
     cffilter[0][index_QRCFFB%QRCFFB] = fl_Cwrenchraw.force;
@@ -394,43 +427,43 @@ void QuadRobot::Step()
     #define CFCOLUMN 33
     static double cf[CFROW][CFCOLUMN];
     static ulong index = 0;
-    cf[index][0] = limb_frontleft.GetContactForce().X();
-    cf[index][1] = limb_frontleft.GetContactForce().Y();
-    cf[index][2] = limb_frontleft.GetContactForce().Z();
-    cf[index][3] = limb_frontright.GetContactForce().X();
-    cf[index][4] = limb_frontright.GetContactForce().Y();
-    cf[index][5] = limb_frontright.GetContactForce().Z();
-    cf[index][6] = limb_backleft.GetContactForce().X();
-    cf[index][7] = limb_backleft.GetContactForce().Y();
-    cf[index][8] = limb_backleft.GetContactForce().Z();
-    cf[index][9] = limb_backright.GetContactForce().X();
-    cf[index][10] = limb_backright.GetContactForce().Y();
-    cf[index][11] = limb_backright.GetContactForce().Z();
+    cf[index][0] = limb_frontleft.GetContactForce().x();
+    cf[index][1] = limb_frontleft.GetContactForce().y();
+    cf[index][2] = limb_frontleft.GetContactForce().z();
+    cf[index][3] = limb_frontright.GetContactForce().x();
+    cf[index][4] = limb_frontright.GetContactForce().y();
+    cf[index][5] = limb_frontright.GetContactForce().z();
+    cf[index][6] = limb_backleft.GetContactForce().x();
+    cf[index][7] = limb_backleft.GetContactForce().y();
+    cf[index][8] = limb_backleft.GetContactForce().z();
+    cf[index][9] = limb_backright.GetContactForce().x();
+    cf[index][10] = limb_backright.GetContactForce().y();
+    cf[index][11] = limb_backright.GetContactForce().z();
 
-    cf[index][12] = fl_Cwrench.force.X();
-    cf[index][13] = fl_Cwrench.force.Y();
-    cf[index][14] = fl_Cwrench.force.Z();
-    cf[index][15] = fr_Cwrench.force.X();
-    cf[index][16] = fr_Cwrench.force.Y();
-    cf[index][17] = fr_Cwrench.force.Z();
-    cf[index][18] = bl_Cwrench.force.X();
-    cf[index][19] = bl_Cwrench.force.Y();
-    cf[index][20] = bl_Cwrench.force.Z();
-    cf[index][21] = br_Cwrench.force.X();
-    cf[index][22] = br_Cwrench.force.Y();
-    cf[index][23] = br_Cwrench.force.Z();
+    cf[index][12] = fl_Cwrench.force.x();
+    cf[index][13] = fl_Cwrench.force.y();
+    cf[index][14] = fl_Cwrench.force.z();
+    cf[index][15] = fr_Cwrench.force.x();
+    cf[index][16] = fr_Cwrench.force.y();
+    cf[index][17] = fr_Cwrench.force.z();
+    cf[index][18] = bl_Cwrench.force.x();
+    cf[index][19] = bl_Cwrench.force.y();
+    cf[index][20] = bl_Cwrench.force.z();
+    cf[index][21] = br_Cwrench.force.x();
+    cf[index][22] = br_Cwrench.force.y();
+    cf[index][23] = br_Cwrench.force.z();
 
-    cf[index][24] = limb_frontleft.generalized_cf[0]-limb_frontleft.GetGeneralizedForce().X();
-    cf[index][25] = limb_frontleft.generalized_cf[1]-limb_frontleft.GetGeneralizedForce().Y();
-    cf[index][26] = limb_frontleft.generalized_cf[2]-limb_frontleft.GetGeneralizedForce().Z();
+    cf[index][24] = limb_frontleft.generalized_cf[0]-limb_frontleft.GetGeneralizedForce().x();
+    cf[index][25] = limb_frontleft.generalized_cf[1]-limb_frontleft.GetGeneralizedForce().y();
+    cf[index][26] = limb_frontleft.generalized_cf[2]-limb_frontleft.GetGeneralizedForce().z();
 
     cf[index][27] = limb_frontleft.GetThetaAccVel(1);
     cf[index][28] = limb_frontleft.GetThetaAccVel(2);
     cf[index][39] = limb_frontleft.GetThetaAccVel(3);
 
-    cf[index][30] = m_accVel.X();
-    cf[index][31] = m_accVel.Y();
-    cf[index][32] = m_accVel.Z();
+    cf[index][30] = m_accVel.x();
+    cf[index][31] = m_accVel.y();
+    cf[index][32] = m_accVel.z();
     index++;
     if( transfer_contact_force || index == CFROW)
     {
@@ -447,16 +480,57 @@ void QuadRobot::Step()
         pubMatlab.Publish(matlabIdentMsg);
     }
 
+    for(int i = 0; i < 4; i++)
+    {
+        if(limbVector[i]->GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+            supporting[i] = 1;
+        else
+            supporting[i] = 0;
+    }
+    //This code block should be implemented in data process part.
+    for(int i = 0; i < 4; i++)
+    {
+        r[i] = BodytoWorldDCM*(*limborginVector[i] + limbVector[i]->GetPointPos(3));
+    }
+
+    GetVelocity(gaig.GiveAdvise());
+
+    //cout << "robot velocity is " << m_velocity << endl;
+    VectorXd X0(15), Xref(15);
+    Vector3d attitude;
+//    for(int i = 0; i < 4; i++)
+//    {
+//        supporting[i] = (limbVector[i]->GetState() == LimbModel::LIMB_STATE::SUPPORT);
+//    }
+    //cout << "Supporting is " << supporting << endl;
     switch(robot_state)
     {
     //Inertial parameters identification
     case IDENTIFICATION:
         IdentifyInertialParameters();
-    break;
-    default:
+        break;
+    case MPC: // Stand MPC
+        if(m_TimeCounter % 10 == 0)
+        {
+            attitude << m_roll, m_pitch, m_yaw;
+            attitude.z() = 0;
+            attitude = BodytoWorldDCM * attitude;
+            attitude.z() = m_yaw;
+            X0 << attitude,  -r[0], m_angleVel, m_velocity, 0,0,9.8;
+            supporting << 1,1,1,1;
+            Xref = mpc.GetXref();
+            //Xref.segment(2,1) << attitude.z();
+            Xref.segment(3, 3) << BodytoWorldDCM * r_bodypos[0];
+            Mpc(X0, Xref, supporting);
+         }
+        break;
+    case WALK:
+    case TROT:
+    case PRONK:
+    case BOUND:
         //Control algorithm for various situations
         GaitAlgorithm();
-    break;
+        break;
     }
     //After state update, we should call this function to control robot
     ControlTransport();
@@ -561,73 +635,189 @@ void QuadRobot::GaitAlgorithm()
     /*
      * This function is called at 1/m_steptime
      * We should implement all gait algorithm in this function
-     * Whatever state the robot will go into, the first job is adjusting attitude include height, joints' angle
     */
-    static ulong state = 1;
-    double quadperiod = 0.3;  //second, not > 0.1 now
-    ulong interperiod = quadperiod/m_steptime;
-    Vector3d f_supportposition(-m_exp_vel*quadperiod, 0, m_expheight);
-    Vector3d f_1_supportposition(m_exp_vel*quadperiod, 0, m_expheight);
-    Vector3d swingposition(m_exp_vel*quadperiod, 0 , 0.4);
+    static Vector3d previous_targetpos[4];
+    Vector3d *targetpos;
+    Vector4i advise;
+    // MPC controller
+    Eigen::VectorXd X0(15), Xref(15);
+    Vector3d postemp, attitude;
+    // targetpos is the position in body frame in order to use function SetFootPointPos.
+    targetpos = gaig.Step(m_velocity_exp, supporting);
+    advise = gaig.GiveAdvise();
+    supporting = advise;
+//    cout << "Advise is " << advise << endl;
+    attitude << m_roll, m_pitch, m_yaw;
+    attitude.z() = 0;
+    attitude = BodytoWorldDCM * attitude;
+    attitude.z() = m_yaw;
+    X0 << attitude, 0, 0, 0, m_angleVel, m_velocity, 0, 0, 9.8;
+    Xref = mpc.GetXref();
+//    // just yaw tracking test
+//    static int counter = 0;
+//    Vector3d v_w;
 
+//    if(counter % 1000 == 0)
+//    {
+//       Xref[2] += 0.628;
+//       if(Xref[2] > 3.15)
+//            Xref[2] = Xref[2] - 6.28;
+//       v_w.x() = cos(Xref[2])*Xref[9];
+//       v_w.y() = sin(Xref[2])*Xref[9];
+//       Xref[9] = v_w.x();
+//       Xref[10] = v_w.y();
+//    }
+//    counter++;
+     //
+    if(Xref[2] >= 3.14 and m_yaw < 0)
+    {
+        Xref[2] = -3.14;
+    }
+    if(Xref[2] <= -3.14 and m_yaw > 0)
+    {
+        Xref[2] = 3.14;
+    }
     switch(robot_state)
     {
     case STOP:
 
         break;
     case WALK:
-        break;
-    case TROT:
-        switch(state)
+        for(int i = 0; i < 4; i++)
         {
-        case 1: //four limbs support
-            if(GetTimeCounter() % interperiod  == 0)
+            if(advise[i] == 0)
             {
-                //forward
-                SetFootPointPos(1, f_supportposition, quadperiod);
-                SetFootPointPos(4, f_supportposition, quadperiod);
-                SetFootPointPos(2, swingposition, quadperiod);
-                SetFootPointPos(3, swingposition, quadperiod);
-                state = 2;
-            }
-            break;
-        case 2:
-            if(GetTimeCounter() % interperiod == 0)
-            {
-                SetFootPointPos(1, f_supportposition, quadperiod);
-                SetFootPointPos(4, f_supportposition, quadperiod);
-                SetFootPointPos(2, f_1_supportposition, quadperiod);
-                SetFootPointPos(3, f_1_supportposition, quadperiod);
-                state = 3;
-            }
-            break;
-        case 3:
-            if(GetTimeCounter() % interperiod  == 0)
-            {
-                SetFootPointPos(1, swingposition, quadperiod);
-                SetFootPointPos(4, swingposition, quadperiod);
-                SetFootPointPos(2, f_supportposition, quadperiod);
-                SetFootPointPos(3, f_supportposition, quadperiod);
-                state = 4;
-            }
-            break;
-        case 4: //four limbs support
-            if(GetTimeCounter() % interperiod  == 0)
-            {
-                SetFootPointPos(1, f_1_supportposition, quadperiod);
-                SetFootPointPos(4, f_1_supportposition, quadperiod);
-                SetFootPointPos(2, f_supportposition, quadperiod);
-                SetFootPointPos(3, f_supportposition, quadperiod);
-                state = 1;
+                //Front limbs
+                if( ! (previous_targetpos[i] - targetpos[i]).isZero(1e-5))
+                {
+                    SetFootPointPos(i+1, targetpos[i], 0.3*gaig.GetSwingTime()/2*m_steptime);
+               //     cout << "Target pos is " << targetpos << "Time is " << gaig.GetSupportTime()/2*m_steptime <<endl;
+                }
+                // Modify reference position in Xref and current state position in X0.
+                if( i == 0)
+                {
+                    X0.segment(3, 3)  = - r[1];
+                    Xref.segment(3, 3)  = BodytoWorldDCM * r_bodypos[1];
+                }
+                else if(i == 1)
+                {
+                    X0.segment(3, 3)  =  - r[0];
+                    Xref.segment(3, 3)  =BodytoWorldDCM * r_bodypos[0];
+                }
             }
         }
+        for(int i = 0; i < 4; i++)
+        {
+             previous_targetpos[i] = targetpos[i];
+        }
+        if(advise[0] == 1 and advise[1] == 1) // if four-legged support
+        {
+            X0.segment(3, 3)  = - r[1];
+            Xref.segment(3, 3)  = BodytoWorldDCM *r_bodypos[1];
+        }
         break;
-    case RUN:
+    case TROT: 
+        for(int i = 0; i < 4; i++)
+        {
+            if(advise[i] == 0)
+            {
+                //Front limbs
+                if( ! (previous_targetpos[i] - targetpos[i]).isZero(1e-5))
+                {
+                    SetFootPointPos(i+1, targetpos[i], 0.3*gaig.GetSwingTime()/2*m_steptime);
+                //    cout << "Target pos is " << targetpos << "Time is " << gaig.GetSupportTime()/2*m_steptime <<endl;
+                }
+                // Modify reference position in Xref and current state position in X0.
+                if( i == 0)
+                {
+                    X0.segment(3, 3)  = - r[1];
+                    Xref.segment(3, 3)  = BodytoWorldDCM * r_bodypos[1];
+                }
+                else if(i == 1)
+                {
+                    X0.segment(3, 3)  =  - r[0];
+                    Xref.segment(3, 3)  =BodytoWorldDCM * r_bodypos[0];
+                }
+            }
+        }
+        for(int i = 0; i < 4; i++)
+        {
+             previous_targetpos[i] = targetpos[i];
+        }
+        if(advise[0] == 1 and advise[1] == 1) // if four-legged support
+        {
+            X0.segment(3, 3)  = - r[1];
+            Xref.segment(3, 3)  = BodytoWorldDCM *r_bodypos[1];
+        }
         break;
-    case JUMP:
-
+    case PRONK:
+        for(int i = 0; i < 4; i++)
+        {
+            if(advise[i] == 0)
+            {
+                if( ! (previous_targetpos[i] - targetpos[i]).isZero(1e-2))
+                {
+                    SetFootPointPos(i+1, targetpos[i], 0.5*gaig.GetSwingTime()*m_steptime);
+                 //   cout << "Target pos is " << targetpos << "Time is " << gaig.GetSupportTime()/2*m_steptime <<endl;
+                }
+            }
+        }
+        for(int i = 0; i < 4; i++)
+        {
+             previous_targetpos[i] = targetpos[i];
+        }
+        break;
+    case BOUND:
+        for(int i = 0; i < 4; i++)
+        {
+            if(advise[i] == 0)
+            {
+                if( ! (previous_targetpos[i] - targetpos[i]).isZero(1e-2))
+                {
+                    SetFootPointPos(i+1, targetpos[i], 0.5*gaig.GetSwingTime()*m_steptime);
+               //     cout << "Target pos is " << targetpos[i] << "Time is " << gaig.GetSupportTime()/2*m_steptime <<endl;
+                }
+            }
+        }
+        for(int i = 0; i < 4; i++)
+        {
+             previous_targetpos[i] = targetpos[i];
+        }
         break;
     }
+
+    if(m_TimeCounter % 10 == 0)
+    {
+        Mpc(X0, Xref, advise);
+     }
+
+#ifdef GRAPH_ANALYSIS
+    /*Write to data file for gnuplot.
+     * Format:
+     * time      roll     pitch      yaw     velocity_world_x    ...     yaw_reference    v_x_reference       v_y_reference       v_z_reference     PDMPCforce
+    */
+    string str;
+    stringstream ss;
+    VectorXd s_ufMPC = mpc.GetSolutionUniformForceMPC();
+    VectorXd s_PDcomp = mpc.GetSolutionPDCompensator();
+    VectorXd s_final = mpc.GetSolution();
+    ss << m_TimeCounter << "\t" << m_roll << "\t" << m_pitch << "\t" << m_yaw << "\t" << m_velocity.x() << "\t"
+         << limbVector[0]->GetPointPos(3).x() << "\t" << limbVector[1]->GetPointPos(3).x() << "\t" << limbVector[2]->GetPointPos(3).x()  << "\t" << limbVector[3]->GetPointPos(3).x() << "\t"
+         << limbVector[0]->GetPointPos(3).z() << "\t" << limbVector[1]->GetPointPos(3).z() << "\t" << limbVector[2]->GetPointPos(3).z()  << "\t" << limbVector[3]->GetPointPos(3).z() << "\t"
+            // reference order, from 14
+         << Xref[2] << "\t" << Xref[9] << "\t" << Xref[10] << "\t" << Xref[11] << "\t"
+            //PDMPC force
+                //uniform force mpc solution, from 18
+         << s_ufMPC[0] << "\t" << s_ufMPC[1] << "\t" << s_ufMPC[2] << "\t" << s_ufMPC[3] << "\t" << s_ufMPC[4] << "\t" << s_ufMPC[5] << "\t" << s_ufMPC[6] << "\t"
+         << s_ufMPC[7] << "\t" << s_ufMPC[8] << "\t" << s_ufMPC[9] << "\t" << s_ufMPC[10] << "\t" << s_ufMPC[11] << "\t"
+                //PD compensator solution, from 30
+         << s_PDcomp[0] << "\t" << s_PDcomp[1] << "\t" << s_PDcomp[2] << "\t" << s_PDcomp[3] << "\t" << s_PDcomp[4] << "\t" << s_PDcomp[5] << "\t" << s_PDcomp[6] << "\t"
+         << s_PDcomp[7] << "\t" << s_PDcomp[8] << "\t" << s_PDcomp[9] << "\t" << s_PDcomp[10] << "\t" << s_PDcomp[11] << "\t"
+                //Final solution, from 42
+         << s_final[0] << "\t" << s_final[1] << "\t" << s_final[2] << "\t" << s_final[3] << "\t" << s_final[4] << "\t" << s_final[5] << "\t" << s_final[6] << "\t"
+         << s_final[7] << "\t" << s_final[8] << "\t" << s_final[9] << "\t" << s_final[10] << "\t" << s_final[11] << "\t" << endl;
+    gp.RecordData(gpfileindex, ss.str());
+#endif
 }
 
 void QuadRobot::ControlTransport()
@@ -683,7 +873,7 @@ void QuadRobot::TransTorCtlMessage()
 bool QuadRobot::SetFootPointPos(int indexlimb, const Vector3d& position, double execute_time,  INV_KIN_SOLUTION_TYPE  type)
 {
     bool result = false;
-    double mindistance = 100000000, distance = 0;
+    double mindistance = 1e8, distance = 0;
     double v1 = 0, v2 = 0, v3 = 0;
     ulong choice = 0;
     LimbModel* plimbmodel[4] = {&limb_frontleft, &limb_frontright, &limb_backleft, &limb_backright};
@@ -702,15 +892,15 @@ bool QuadRobot::SetFootPointPos(int indexlimb, const Vector3d& position, double 
         return false;
     }
     //choose a expected solution
-    c_thetas.X() = c_theta1;
-    c_thetas.Y() = c_theta2;
-    c_thetas.Z() = c_theta3;
+    c_thetas.x() = c_theta1;
+    c_thetas.y() = c_theta2;
+    c_thetas.z() = c_theta3;
     switch(type)
     {
     case MINI_DISTANCE:
         for(ulong i = 0; i < plimbmodel[indexlimb-1]->GetInvAnswer().size() ; i++)
         {
-            distance = c_thetas.Distance(plimbmodel[indexlimb-1]->GetInvAnswer()[i]);
+            distance = (c_thetas-plimbmodel[indexlimb-1]->GetInvAnswer()[i]).norm();
             if(distance < mindistance)
             {
                 mindistance = distance;
@@ -723,8 +913,8 @@ bool QuadRobot::SetFootPointPos(int indexlimb, const Vector3d& position, double 
         cout << "Choosing a solution: " << endl;
         for(ulong i = 0; i < plimbmodel[indexlimb-1]->GetInvAnswer().size() ; i++)
         {
-           cout << "solution " << i+1 << " in rad:" << "theta1 " << plimbmodel[indexlimb-1]->GetInvAnswer()[i].X() << "theta2 " << plimbmodel[indexlimb-1]->GetInvAnswer()[i].Y() << \
-                 "theta3 " << plimbmodel[indexlimb-1]->GetInvAnswer()[i].Z() << endl;
+           cout << "solution " << i+1 << " in rad:" << "theta1 " << plimbmodel[indexlimb-1]->GetInvAnswer()[i].x() << "theta2 " << plimbmodel[indexlimb-1]->GetInvAnswer()[i].y() << \
+                 "theta3 " << plimbmodel[indexlimb-1]->GetInvAnswer()[i].z() << endl;
         }
         cout << "Enter a number to choose a solution : " << endl;
         cin >> choice;
@@ -732,45 +922,152 @@ bool QuadRobot::SetFootPointPos(int indexlimb, const Vector3d& position, double 
         break;
     }
 
-    v1 = abs(target.X() - c_theta1)/execute_time;
-    v2 = abs(target.Y() - c_theta2)/execute_time;
-    v3 = abs(target.Z() - c_theta3)/execute_time;
+    v1 = abs(target.x() - c_theta1)/execute_time;
+    v2 = abs(target.y() - c_theta2)/execute_time;
+    v3 = abs(target.z() - c_theta3)/execute_time;
 
-    SetJointsTargetPos(indexlimb, 1, target.X(), v1);
-    SetJointsTargetPos(indexlimb, 2, target.Y(), v2);
-    SetJointsTargetPos(indexlimb, 3, target.Z(), v3);
+    SetJointsTargetPos(indexlimb, 1, target.x(), v1);
+    SetJointsTargetPos(indexlimb, 2, target.y(), v2);
+    SetJointsTargetPos(indexlimb, 3, target.z(), v3);
 
     return true;
 }
 
-void QuadRobot::TrotGait(double velocity)
+Vector3d QuadRobot::GetVelocity(const Vector4i& support)
 {
-    robot_state = ROBOT_STATE::TROT;
-    m_exp_vel = velocity;
-    //Calculate the gait period based on velocity
+    /*TODO*/
+    static Vector3d p[4];
+    static Vector4i previousSupport = Vector4i::Zero();
+    Vector3d vc[4], vel[4], vfinal;
+    for(int i = 0; i < 4; i++)
+    {
+        if(support[i])
+        {
+            vel[i] = (r[i]-p[i])*1000;
+            p[i] = r[i];
+            if( (support - previousSupport)[i] == 0)
+            {
+                vc[i] = - vel[i];
+                vc[i] = - vel[i];
+                vc[i] = - vel[i];
+                vfinal = vc[i];  
+            }
+            break;
+        }
+    }
+    // Low pass filter
+    m_velocity = 0.8*m_velocity + 0.2*vfinal;
 
+    previousSupport = support;
+    return vfinal;
 }
 
-void QuadRobot::JumpGait()
+void QuadRobot::WalkGait(const Vector3d& attitude_direction, const Vector3d& velocity)
 {
-    robot_state = ROBOT_STATE::JUMP;
+    Vector3d v_w, atti_w;
+    v_w.x() = cos(attitude_direction.z())*velocity.x() - sin(attitude_direction.z())*velocity.y();
+    v_w.y() = sin(attitude_direction.z())*velocity.x() + cos(attitude_direction.z())*velocity.y();
+    m_velocity_exp = v_w;
+    m_attitude_exp = attitude_direction;
+    atti_w.x() = cos(attitude_direction.z())*attitude_direction.x() - sin(atti_w.z())*attitude_direction.y();
+    atti_w.y() = sin(attitude_direction.z())*attitude_direction.x() + cos(atti_w.z())*attitude_direction.y();
+    atti_w.z() = attitude_direction.z();
+    VectorXd X_ref(15);
+    //Initial position use the front right limb for first step of the front left limb.
+    X_ref << atti_w, BodytoWorldDCM * r_bodypos[1], 0, 0, 0, v_w, 0, 0, 9.8;
+    robot_state = ROBOT_STATE::WALK;
+    ulong fourstandtime = 250, swingtime = 100;
+    gaig.init(GaitGenerator::GAIT::WALK, initialposition, 0.05, 0, swingtime);
+    gaig.SetFoursStandTime(fourstandtime);
+
+    mpc.Init(X_ref, r, 10);
+    mpc.SetMode(MPCController::MODE::WALK);
+}
+
+void QuadRobot::TrotGait(const Vector3d& attitude_direction, const Vector3d& velocity)
+{
+    Vector3d v_w, atti_w;
+    v_w.x() = cos(attitude_direction.z())*velocity.x() - sin(attitude_direction.z())*velocity.y();
+    v_w.y() = sin(attitude_direction.z())*velocity.x() + cos(attitude_direction.z())*velocity.y();
+    m_velocity_exp = v_w;
+    m_attitude_exp = attitude_direction;
+    atti_w.x() = cos(attitude_direction.z())*attitude_direction.x() - sin(atti_w.z())*attitude_direction.y();
+    atti_w.y() = sin(attitude_direction.z())*attitude_direction.x() + cos(atti_w.z())*attitude_direction.y();
+    atti_w.z() = attitude_direction.z();
+    VectorXd X_ref(15);
+    //Initial position use the front right limb for first step of the front left limb.
+    X_ref << atti_w, BodytoWorldDCM * r_bodypos[1], 0, 0, 0, v_w, 0, 0, 9.8;
+    robot_state = ROBOT_STATE::TROT;
+    /// 150, 0.15, four-leged time 50 for 0.3m/s
+    /// 100, 0.11, four-legged time 50 is steaddy for 1m/s
+    /// 100 standtime with four-legged time 50 is suitable to traversing barriers.
+    ulong fourstandtime = 0, standtime = 0;
+    fourstandtime = 150 - velocity.x()*80;
+    standtime = 200 - velocity.x()*80;
+    gaig.init(GaitGenerator::GAIT::TROT, initialposition, 0.16, standtime, 100);//100,100
+    gaig.SetFoursStandTime(50);//
+
+    mpc.Init(X_ref, r, 10);
+    mpc.SetMode(MPCController::MODE::AttitudeVelocity);
+}
+
+void QuadRobot::PronkGait(const Eigen::Vector3d& attitude_direction, const Eigen::Vector3d& velocity)
+{
+    Vector3d v_w, atti_w;
+    v_w.x() = cos(attitude_direction.z())*velocity.x() - sin(attitude_direction.z())*velocity.y();
+    v_w.y() = sin(attitude_direction.z())*velocity.x() + cos(attitude_direction.z())*velocity.y();
+    v_w.z() = velocity.z();
+    m_velocity_exp = v_w;
+    m_attitude_exp = attitude_direction;
+    atti_w.x() = cos(attitude_direction.z())*attitude_direction.x() - sin(atti_w.z())*attitude_direction.y();
+    atti_w.y() = sin(attitude_direction.z())*attitude_direction.x() + cos(atti_w.z())*attitude_direction.y();
+    atti_w.z() = attitude_direction.z();
+    VectorXd X_ref(15);
+    X_ref << atti_w, 0, 0, 0, 0, 0, 0, v_w, 0, 0, 9.8;
+    robot_state = ROBOT_STATE::PRONK;
+    ulong supporttime = 200, swingtime = 400;
+    gaig.init(GaitGenerator::GAIT::PRONK, initialposition, 0.1, supporttime, swingtime);
+
+    mpc.Init(X_ref, r, 10);
+    mpc.SetMode(MPCController::MODE::JUMP);
+}
+
+void QuadRobot::BoundGait(const Eigen::Vector3d& attitude_direction, const Eigen::Vector3d& velocity)
+{   
+    Vector3d v_w, atti_w;
+    v_w.x() = cos(attitude_direction.z())*velocity.x() - sin(attitude_direction.z())*velocity.y();
+    v_w.y() = sin(attitude_direction.z())*velocity.x() + cos(attitude_direction.z())*velocity.y();
+    v_w.z() = velocity.z();
+    m_velocity_exp = v_w;
+    m_attitude_exp = attitude_direction;
+    atti_w.x() = cos(attitude_direction.z())*attitude_direction.x() - sin(atti_w.z())*attitude_direction.y();
+    atti_w.y() = sin(attitude_direction.z())*attitude_direction.x() + cos(atti_w.z())*attitude_direction.y();
+    atti_w.z() = attitude_direction.z();
+    VectorXd X_ref(15);
+    X_ref << atti_w, 0, 0, 0, 0, 0, 0, v_w, 0, 0, 9.8;
+    robot_state = ROBOT_STATE::BOUND;
+    ulong supporttime = 100, swingtime = 100;
+    gaig.init(GaitGenerator::GAIT::BOUND, initialposition, 0.08, supporttime, swingtime);
+    gaig.SetFoursStandTime(200);
+    mpc.Init(X_ref, r, 10);
+    mpc.SetMode(MPCController::MODE::BOUND);
 }
 
 void QuadRobot::IdentificationCOMPosition()
 {
     /*TODO!! Only the body in level, this function behave properly.*/
     m_bodyCOMValid = true;
-    double F1 = limb_frontleft.GetContactForce().Z(), F2 = limb_frontright.GetContactForce().Z(), F3 = limb_backleft.GetContactForce().Z(), F4 = limb_backright.GetContactForce().Z();
-    double x1 = limborg_frontleft.X()+limb_frontleft.GetMainPointPos(3).X(),  x2 = limborg_frontright.X()+limb_frontright.GetMainPointPos(3).X();
-    double x3 = limborg_backleft.X()+limb_backleft.GetMainPointPos(3).X(),  x4 = limborg_backright.X()+limb_backright.GetMainPointPos(3).X();
-    double y1 = limborg_frontleft.Y()+limb_frontleft.GetMainPointPos(3).Y(), y2 = limborg_frontright.Y()+limb_frontright.GetMainPointPos(3).Y();
-    double y3 = limborg_backleft.Y()+limb_backleft.GetMainPointPos(3).Y(),  y4 = limborg_backright.Y()+limb_backright.GetMainPointPos(3).Y();
+    double F1 = limb_frontleft.GetContactForce().z(), F2 = limb_frontright.GetContactForce().z(), F3 = limb_backleft.GetContactForce().z(), F4 = limb_backright.GetContactForce().z();
+    double x1 = limborg_frontleft.x()+limb_frontleft.GetMainPointPos(3).x(),  x2 = limborg_frontright.x()+limb_frontright.GetMainPointPos(3).x();
+    double x3 = limborg_backleft.x()+limb_backleft.GetMainPointPos(3).x(),  x4 = limborg_backright.x()+limb_backright.GetMainPointPos(3).x();
+    double y1 = limborg_frontleft.y()+limb_frontleft.GetMainPointPos(3).y(), y2 = limborg_frontright.y()+limb_frontright.GetMainPointPos(3).y();
+    double y3 = limborg_backleft.y()+limb_backleft.GetMainPointPos(3).y(),  y4 = limborg_backright.y()+limb_backright.GetMainPointPos(3).y();
     //Force equilibrium
     double Fbody = -(F1+F2+F3+F4);
     //Torque equilibrium
-    m_bodyCOM.Y() = (F1*y1+F2*y2+F3*y3+F4*y4)/(-Fbody);
-    m_bodyCOM.X() = (F1*x1+F2*x2+F3*x3+F4*x4)/(-Fbody);
-    m_bodyCOM.Z() = 0;
+    m_bodyCOM.y() = (F1*y1+F2*y2+F3*y3+F4*y4)/(-Fbody);
+    m_bodyCOM.x() = (F1*x1+F2*x2+F3*x3+F4*x4)/(-Fbody);
+    m_bodyCOM.z() = 0;
 }
 
 void QuadRobot::IdentifyInertialParameters()
@@ -799,9 +1096,9 @@ void QuadRobot::IdentifyInertialParameters()
         appliedTorque[2] = mag3*sin(force_period*PI*t3)+mag3;
     }
         //Get the joints' torque from real/simulation environment
-    torque[index] = fl_Jwrench[0].torque.X();
-    torque[index+1] =  -fl_Jwrench[1].torque.Y();
-    torque[index+2] = fl_Jwrench[2].torque.Y();
+    torque[index] = fl_Jwrench[0].torque.x();
+    torque[index+1] =  -fl_Jwrench[1].torque.y();
+    torque[index+2] = fl_Jwrench[2].torque.y();
 
         //Fill the W matrix based on the joints' trajectories.
     double theta1 = limb_frontleft.GetThetaPos(1), theta2 = limb_frontleft.GetThetaPos(2), theta3 = limb_frontleft.GetThetaPos(3);
@@ -833,7 +1130,7 @@ void QuadRobot::IdentifyInertialParameters()
     W[index][8] = g*sin(theta1);
     W[index][9] = 0;
     W[index][10] = dtheta1;
-    W[index][11] = sgn(dtheta1);
+    W[index][11] = MyMathFunc::sgn(dtheta1);
 
     W[index][12] = ddtheta1*pow(cos(theta2),2)-dtheta1*dtheta2*sin(2*theta2);
     W[index][13] = 0;
@@ -877,7 +1174,7 @@ void QuadRobot::IdentifyInertialParameters()
     W[index+1][20] = -l1*pow(dtheta1,2)*sin(theta2)-g*cos(theta1)*sin(theta2);
     W[index+1][21] = 0;
     W[index+1][22] = dtheta2;
-    W[index+1][23] = sgn(dtheta2);
+    W[index+1][23] = MyMathFunc::sgn(dtheta2);
 
     W[index+1][24] = -0.5*pow(dtheta1,2)*sin(2*(theta3-theta2));
     W[index+1][25] = ddtheta2-ddtheta3;
@@ -910,7 +1207,7 @@ void QuadRobot::IdentifyInertialParameters()
     W[index+2][32] = (l1-l2*cos(theta2))*pow(dtheta1,2)*sin(theta3-theta2)-l2*pow(dtheta2,2)*sin(theta3) + l2*cos(theta3)*ddtheta2 +g*cos(theta1)*sin(theta3-theta2);
     W[index+2][33] = 0;
     W[index+2][34] = dtheta3;
-    W[index+2][35] = sgn(dtheta3);
+    W[index+2][35] = MyMathFunc::sgn(dtheta3);
 
     //If W matrix has been full, the process of sampling data will be finished.Change the robot state to STOP, then transport W matrix to matlab communication program.
     if(index == ROW-3)
@@ -971,10 +1268,10 @@ void QuadRobot::IdentifyInertialParametersUsingNoAccDynamics()
         memset(torque_integral, 0, sizeof(torque_integral));
     }*/
     //Get the joints' torque from real/simulation environment
-    torque[0] = fl_Jwrench[0].torque.X();
-    torque[1] =  -fl_Jwrench[1].torque.Y();
-    torque[2] = fl_Jwrench[2].torque.Y();
-    torque[3] = - fl_Jwrench[3].torque.Y();
+    torque[0] = fl_Jwrench[0].torque.x();
+    torque[1] =  -fl_Jwrench[1].torque.y();
+    torque[2] = fl_Jwrench[2].torque.y();
+    torque[3] = - fl_Jwrench[3].torque.y();
     //Double integral of torque
     for(ulong i = 0; i < 4; i++)
     {
@@ -1007,7 +1304,7 @@ void QuadRobot::IdentifyInertialParametersUsingNoAccDynamics()
     L[index][9] = 0;
     L_Integralsum[0][10] += m_steptime*dtheta1;
     L[index][10] = L_Integralsum[0][10];
-    L_Integralsum[0][11] += m_steptime*sgn(dtheta1);
+    L_Integralsum[0][11] += m_steptime*MyMathFunc::sgn(dtheta1);
     L[index][11] = L_Integralsum[0][11];
 
     L[index][12] = pow(cos(theta2),2)*dtheta1-pow(cos(theta2_t0),2)*dtheta1_t0;
@@ -1085,7 +1382,7 @@ void QuadRobot::IdentifyInertialParametersUsingNoAccDynamics()
     L[index+1][21] = 0;
     L_Integralsum[1][22] += m_steptime*dtheta2;
     L[index+1][22] = L_Integralsum[1][22];
-    L_Integralsum[1][23] += m_steptime*sgn(dtheta2);
+    L_Integralsum[1][23] += m_steptime*MyMathFunc::sgn(dtheta2);
     L[index+1][23] = L_Integralsum[1][23];
 
     L_Integralsum[1][24] += m_steptime*(-0.5*pow(dtheta1,2)*sin(2*theta3-2*theta2));
@@ -1160,7 +1457,7 @@ void QuadRobot::IdentifyInertialParametersUsingNoAccDynamics()
     L[index+2][33] = 0;
     L_Integralsum[2][34] += m_steptime*dtheta3;
     L[index+2][34] = L_Integralsum[2][34];
-    L_Integralsum[2][35] += m_steptime*sgn(dtheta3);
+    L_Integralsum[2][35] += m_steptime*MyMathFunc::sgn(dtheta3);
     L[index+2][35] = L_Integralsum[2][35];
 
     L_Integralsum[2][36] += m_steptime*(-0.5*pow(dtheta1,2)*sin(2*(theta2+theta4-theta3)));
@@ -1213,7 +1510,7 @@ void QuadRobot::IdentifyInertialParametersUsingNoAccDynamics()
     L[index+3][45] = 0;
     L_Integralsum[3][46] += m_steptime*dtheta4;
     L[index+3][46] = L_Integralsum[3][46];
-    L_Integralsum[3][47] += m_steptime*sgn(dtheta4);
+    L_Integralsum[3][47] += m_steptime*MyMathFunc::sgn(dtheta4);
     L[index+3][47] = L_Integralsum[3][47];
     //If W matrix has been full, the process of sampling data will be finished.Change the robot state to STOP, then transport W matrix to matlab communication program.
     if(index == ROW-4)
@@ -1245,3 +1542,345 @@ void QuadRobot::IdentifyInertialParametersUsingNoAccDynamics()
     ReleaseLock();
 }
 
+/*void QuadRobot::MPCController(Eigen::Vector3d in_velocity, Eigen::Vector3d in_angularspeed, int k_steps)
+{
+    double robotmass = 85, mu = 0.6, fz_high = -100, fz_low= -1000,  timestep = 0.001,  force_weights = 1e-6; //TODO
+// 1. Construct Matrix
+    Eigen::MatrixXd A(15*k_steps, 15*k_steps), B(15*k_steps, 12*k_steps), L(15*k_steps, 15*k_steps), K(12*k_steps, 12*k_steps), A_0(15,15), B_0(15,12);
+    A = Eigen::MatrixXd::Zero(15*k_steps, 15*k_steps);
+    B = Eigen::MatrixXd::Zero(15*k_steps, 12*k_steps);
+    L = Eigen::MatrixXd::Identity(15*k_steps, 15*k_steps);
+    K = Eigen::MatrixXd::Identity(12*k_steps, 12*k_steps)*force_weights;
+    Eigen::Matrix3d InertiaWorldInverse, InertialBody, R;
+    Eigen::Vector3d r1, r2, r3, r4;
+    // Iw = alpha*Ib*alpha'
+    InertialBody << 1.95, 0,  0,
+                                    0, 9.48, 0,
+                                    0, 0, 10.11; // Data from Gazebo model
+    InertiaWorldInverse.noalias() = (BodytoWorldDCM*InertialBody*BodytoWorldDCM.transpose()).inverse();
+    // Calculating R
+    Eigen::Vector3d angle(m_roll, m_pitch, m_yaw), dangle;
+    Eigen::Matrix3d RHelper;
+    RHelper << cos(angle.y())*cos(angle.z()), -sin(angle.z()), 0,
+                           cos(angle.y())*sin(angle.z()) , cos(angle.z()),  0,
+                                       -sin(angle.y()) ,                        0 ,                1;
+    R = RHelper.inverse();
+
+    //Initialize matrix A0 , B0 and Xref
+    A_0 << Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3),                      R,                            Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3),
+                  Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Identity(3,3),  Eigen::Matrix3d::Zero(3,3),
+                  Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3),
+                  Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Identity(3,3),
+                  Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3);
+    //cout << "first A_0" << endl <<A_0 << endl;
+        // initialize r1,r2,r3,r4
+    Eigen::Vector3d r1temp;
+    Vector3d r1p = limborg_frontleft + limb_frontleft.GetPointPos(3);
+    r1temp << r1p.X(), r1p.Y(), r1p.Z();
+    if (limb_frontleft.GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+    {
+        r1 <<  r1temp;
+        r1 = BodytoWorldDCM*r1;
+    }
+    else
+        r1 << Eigen::Vector3d::Zero();
+
+    Eigen::Vector3d r2temp;
+    Vector3d r2p = limborg_frontright + limb_frontright.GetPointPos(3);
+    r2temp << r2p.X(), r2p.Y(), r2p.Z();
+    if (limb_frontright.GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+    {
+        r2 <<  r2temp;
+        r2 = BodytoWorldDCM*r2;
+    }
+    else
+        r2 << Eigen::Vector3d::Zero();
+
+    Eigen::Vector3d r3temp;
+    Vector3d r3p = limborg_backleft + limb_backleft.GetPointPos(3);
+    r3temp << r3p.X(), r3p.Y(), r3p.Z();
+    if (limb_backleft.GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+    {
+        r3 <<  r3temp;
+        r3 = BodytoWorldDCM*r3;
+    }
+    else
+        r3 << Eigen::Vector3d::Zero();
+
+    Eigen::Vector3d r4temp;
+    Vector3d r4p = limborg_backright + limb_backright.GetPointPos(3);
+    r4temp << r4p.X(), r4p.Y(), r4p.Z();
+    if (limb_backright.GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+    {
+        r4 <<  r4temp;
+        r4 = BodytoWorldDCM*r4;
+    }
+    else
+        r4 << Eigen::Vector3d::Zero();
+
+    B_0 << Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3),
+                  Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3),
+                  InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r1),
+                  InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r2),
+                  InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r3),
+                  InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r4),
+                  Eigen::Matrix3d::Identity(3,3)/robotmass, Eigen::Matrix3d::Identity(3,3)/robotmass, Eigen::Matrix3d::Identity(3,3)/robotmass, Eigen::Matrix3d::Identity(3,3)/robotmass,
+                  Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3), Eigen::Matrix3d::Zero(3,3);
+//    cout << "Special M:"<<endl;
+//    cout <<MyMathFunc::CrossProductMatrixFromVector(r1) << endl;
+//    cout <<  InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r2) << endl;
+//   cout << InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r3) << endl;
+//    cout << InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r4) << endl;
+    //cout << "first B_0" << endl <<B_0 << endl;
+
+    Eigen::Vector3d pos(0,0,0), g(0, 0, 9.8); //dangle means derivative of angle vector
+    Eigen::VectorXd  Xn(15*k_steps), X0(15), Xref(15);
+    Xn  = Eigen::VectorXd::Zero(15*k_steps);
+    // X0 is initial value.
+    //TODO velocity
+    static Eigen::Vector3d p(0,0,0), vp(0,0,0);
+    Eigen::Vector3d vel, accvel;
+//    cout << "r1 " << endl << r1 <<endl;
+//    cout << "r2 " << endl << r2 <<endl;
+//    cout << "r3 " << endl << r3 <<endl;
+//    cout << "r4 " << endl << r4 <<endl;
+//    cout << "p" << endl << p <<endl;
+    vel = (r1-p)*1000;
+    p = r1;
+    vp = vel;
+
+    X0 << m_roll, m_pitch, m_yaw, -r1, m_angleVel.X(), m_angleVel.Y(), m_angleVel.Z(), -vel, g;
+    Xref << 0, 0, 0, Xrefglobal.segment(3, 3),  m_angleVel.X(), m_angleVel.Y(), m_angleVel.Z(), -vel,0,0,0;
+    cout << " X0 is  " << X0 << endl;
+    std::vector<Eigen::MatrixXd> avec, bvec;
+    Eigen::MatrixXd MI;
+    MI = Eigen::MatrixXd::Identity(15,15);
+    MI.block<3,3>(12,12) << Eigen::Matrix3d::Zero();
+
+    avec.push_back(A_0);
+    bvec.push_back(B_0);
+    for(int t = 1; t <= k_steps; t++)
+    {
+        //Update matrix A and B according to reference trajectories
+        A.block<15,15>((t-1)*15, 0) << avec[0];
+        for(int i = 0; i < bvec.size(); i++)
+        {
+            B.block<15,12>((t-1)*15, i*12) << bvec[i];
+        }
+//        dangle = R*in_angularspeed;
+//        angle += dangle*timestep;
+        // Calculate Xt
+//        Xn.segment(t-1,15) << avec[0] * X0;
+//        // Reference Trajectories State Generation
+//        RHelper << cos(angle.y())*cos(angle.z()), -sin(angle.z()), 0,
+//                               cos(angle.y())*sin(angle.z()) , cos(angle.z()),  0,
+//                                                -sin(angle.y())           ,          0              ,  1;
+//        R = RHelper.inverse();
+//        pos += in_velocity*timestep;
+//        pos = BodytoWorldDCM.inverse()*pos;
+//        Xref.segment(t-1,15) << 0,0,0,  0,0,0, in_angularspeed, in_velocity, 0,0,0; // angle, pos, . Xref shouldn't include gravity g.
+
+//        A_0.block<3,3>(0, 6) << R;
+//            // A(t) = A(t)*A(t-1) + I ;
+//        avec[0] =  (A_0+ MI) * (avec[0]) ;
+
+//        if (limb_frontleft.GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+//        {
+//            r1 -= pos;
+//        }
+
+//        if (limb_frontright.GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+//        {
+//            r2 -= pos;
+//        }
+
+//        if (limb_backleft.GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+//        {
+//            r3 -= pos;
+//        }
+
+//        if (limb_backright.GetFootState() == LimbModel::LIMB_STATE::SUPPORT)
+//        {
+//            r4 -= pos;
+//        }
+//        B_0.block<3,12>(6, 0) << InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r1),
+//                                                         InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r2),
+//                                                         InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r3),
+//                                                         InertiaWorldInverse*MyMathFunc::CrossProductMatrixFromVector(r4);
+//        for(int i = 0; i < bvec.size(); i++)
+//        {
+//            bvec[i] = A_0* (bvec[i]);
+//        }
+//        bvec.push_back(B_0);
+    }
+    cout << "Xref is :" << Xref <<endl;
+// 2. Slove MPC formulation using qpOASES
+    //Note: Eigen's matrix is column-major storage order, and is differenet from qpOASES which is row-major. Make sure that using Eigen with row-major instead.
+    USING_NAMESPACE_QPOASES
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Hm(12*k_steps, 12*k_steps);
+    Eigen::RowVectorXd gv(12*k_steps);
+    Hm.noalias() = 2*(B.transpose()*L*B+K);
+    gv.noalias() = 2*B.transpose()*L*(A*X0-Xref);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> ConstaintM(16*k_steps,12*k_steps);
+    Eigen::VectorXd lbA(16*k_steps), ubA(16*k_steps), lb(12*k_steps), ub(12*k_steps);
+
+    ConstaintM = Eigen::MatrixXd::Zero(16*k_steps,12*k_steps);
+    ConstaintM.block<4,3>(0,0) << (Eigen::MatrixXd(4,3) << 1, 0,  mu,
+                                                                                                                  0, 1, mu,
+                                                                                                                  1, 0, -mu,
+                                                                                                                  0, 1, -mu).finished();
+    lbA.head(4) << -INFTY, -INFTY, 0, 0;
+    ubA.head(4) << 0, 0, INFTY, INFTY;
+    lb.head(3) << -INFTY,-INFTY,- 500;
+    ub.head(3) << INFTY,INFTY, - 100;
+    for(int i = 1; i <=3; i++)
+    {
+        ConstaintM.block<4,3>(4*i, 3*i) << ConstaintM.block<4,3>(0, 0);
+        lbA.segment(i*4, 4) << lbA.segment(0, 4);
+        ubA.segment(i*4, 4) << ubA.segment(0, 4);
+        lb.segment(i*3, 3) << lb.segment(0, 3);
+        ub.segment(i*3, 3) << ub.segment(0, 3);
+    }
+    for(int i=1; i < k_steps; i++)
+    {
+        ConstaintM.block<16,12>(16*i, 12*i) << ConstaintM.block<16,12>(0,0);
+        lbA.segment(i*16, 16) << lbA.segment(0, 16);
+        ubA.segment(i*16, 16) << ubA.segment(0, 16);
+        lb.segment(i*12,12) << lb.segment(0,12);
+        ub.segment(i*12,12) << ub.segment(0,12);
+    }
+    cout << "A" << endl << A << endl;
+    cout << "B" << endl << B << endl;
+//    cout << " H " << endl <<Hm <<endl;
+//    cout << " gv " << endl << gv <<endl;
+//    cout << " Constrain Matrix  " << endl << ConstaintM <<endl;
+//    cout << " lbA " << endl << lbA <<endl;
+//    cout << " ubA " << endl << ubA <<endl;
+    // Solve QP using qpOASES
+
+
+    QProblem QP_MPC( 12*k_steps, 16*k_steps);
+    QP_MPC.setPrintLevel(PL_LOW);
+    int_t nWSR = 100;
+    //Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(Hm);
+    //cout << "H rank is " << lu_decomp.rank() << endl;
+    double tic = getCPUtime();
+
+    QP_MPC.init( Hm.data(), gv.data(), ConstaintM.data(), lb.data(), ub.data(), lbA.data(), ubA.data(), nWSR );
+    double toc = getCPUtime();
+    cout << "MPC solutin time: " << toc-tic << endl;
+    double* psolution = new double[12*k_steps];
+    memset(psolution,0,sizeof(double)*12);
+    QP_MPC.getPrimalSolution( psolution);
+    Eigen::VectorXd solution(12);
+
+    cout << "MPC solution is :" << endl;
+    for(int i = 0; i < 12; i++)
+    {
+         solution[i] = psolution[i];
+    }
+    cout << solution << endl;
+    cout << "ObjVal = " << QP_MPC.getObjVal() << endl;
+    cout << "Ax+Bu = " << endl << A*X0+B*solution << endl;
+
+// 3. Slove joint forces and apply them
+    Eigen::Vector3d sol, solt, acc;
+    Eigen::Matrix3d WtoB;
+    WtoB << BodytoWorldDCM.transpose();
+    acc << m_accVel.X(), m_accVel.Y(), m_accVel.Z()+9.8;
+    cout << "Acc from IMU: " << acc << endl;
+    for(int i = 0; i < 12; i+=3)
+    {
+        //M*dda - J*Fc = tau, tau is generalized force
+        sol.x() = psolution[i];
+        sol.y() = psolution[i+1];
+        sol.z() = psolution[i+2];
+        solt = limbVector[i/3]->Jac*WtoB *sol;
+        solt =  - solt;
+        psolution[i] = solt.x();
+        psolution[i+1] = solt.y();
+        psolution[i+2] = solt.z();
+    }
+    cout << "Generalized  Force : "<<  endl;
+    for(int i = 0; i < 12; i++)
+        cout << psolution[i] << endl;
+    for(int i = 0; i < 3; i++)
+    {
+        if(i == 1)
+         {
+            psolution[i] = -psolution[i];
+            psolution[i+3] = -psolution[i+3];
+            psolution[i+6] = - psolution[i+6];
+            psolution[i+9] = - psolution[i+9];
+        }
+        SetJointsTorque(1, i+1, psolution[i]);
+        SetJointsTorque(2, i+1, psolution[i+3]);
+        SetJointsTorque(3, i+1, psolution[i+6]);
+        SetJointsTorque(4, i+1, psolution[i+9]);
+    }
+    delete [] psolution;
+
+}
+
+*/
+
+void QuadRobot::MpcMode(VectorXd X_ref)
+{
+    Vector3d rn[4], atti_weights, pos_weights;
+    for(int i = 0; i < 4; i++)
+    {
+        rn[i] = r[i];
+    }
+
+    mpc.Init(X_ref, rn, 10); // No leg mass, 75kg.
+    mpc.SetMode(MPCController::MODE::AttitudePosition);
+    SetState(ROBOT_STATE::MPC);
+}
+
+void QuadRobot::Mpc(VectorXd X0, const VectorXd& Xref, const Vector4i& advisesupport)
+{
+    Vector3d sol, solt;
+    Matrix3d WtoB;
+    WtoB << BodytoWorldDCM.transpose();
+    mpc.SetActivity(advisesupport);
+    mpc.SetXref(Xref);
+    mpc.SolveAddPIDCompensation(X0, r);
+    VectorXd s = mpc.GetSolution();
+    for(int i = 0; i < 12; i+=3)
+    {
+        //M*dda - J*Fc = tau, tau is generalized force
+        sol << s.segment(i, 3);
+        sol = -limbVector[i/3]->Jac*WtoB *sol;
+        s.segment(i, 3) << sol;
+    }
+    //cout << "Generalized  Force : "<<  endl << s << endl;
+    for(int i = 0; i < 3; i++)
+    {
+        if(i == 1)
+         {
+            s[i] = -s[i];
+            s[i+3] = -s[i+3];
+            s[i+6] = - s[i+6];
+            s[i+9] = - s[i+9];
+        }
+        if(advisesupport[0] == 1)
+            SetJointsTorque(1, i+1, s[i]);
+        if(advisesupport[1] == 1)
+            SetJointsTorque(2, i+1, s[i+3]);
+        if(advisesupport[2] == 1)
+            SetJointsTorque(3, i+1, s[i+6]);
+        if(advisesupport[3] == 1)
+            SetJointsTorque(4, i+1, s[i+9]);
+    }
+}
+
+void QuadRobot::SetInitialPos(Vector3d pos)
+{
+    initialposition = pos;
+    for(int i = 0; i < 4; i++)
+    {
+        // r_bodypos is in the body frame
+        r_bodypos[i] = - (initialposition + *limborginVector[i]);
+        cout << "Initial pos each limb reference: "<< i+1 << endl << r_bodypos[i] << endl;
+    }
+}

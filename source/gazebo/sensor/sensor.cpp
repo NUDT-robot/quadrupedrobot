@@ -1,4 +1,6 @@
 #include "include/quadrupedrobot.hh"
+#include <ignition/math.hh>
+#include <Eigen/Dense>
 
 void Sensor_INS::ProcessGazeboINSData(const gazebo::msgs::IMU&  imu_msg,  const ignition::transport:: MessageInfo &_info)
 {
@@ -8,7 +10,7 @@ void Sensor_INS::ProcessGazeboINSData(const gazebo::msgs::IMU&  imu_msg,  const 
     ignition::math::Quaternion<double> quater(quaternion.w(),quaternion.x(),quaternion.y(),quaternion.z());
     ignition::math::Vector3d result;
     result =quater.Euler();
-    ignition::math::Vector3d linear_acc(imu_msg.linear_acceleration().x(), imu_msg.linear_acceleration().y(), imu_msg.linear_acceleration().z());
+    Eigen::Vector3d linear_acc(imu_msg.linear_acceleration().x(), imu_msg.linear_acceleration().y(), imu_msg.linear_acceleration().z());
     GetINSFromGazebo(result.X(), result.Y(), result.Z(),linear_acc);
 }
 
@@ -50,20 +52,20 @@ bool Sensor_INS::GetAttitude(double& roll, double& pitch, double& yaw)
     return true;
 }
 
-inline bool Sensor_INS::GetINSFromGazebo(double& roll, double& pitch, double& yaw, ignition::math::Vector3d& linearAcc)
+inline bool Sensor_INS::GetINSFromGazebo(double& roll, double& pitch, double& yaw, Eigen::Vector3d& linearAcc)
 {
     //Save INS data in QuadRobot class
     parent->m_roll = roll;
     parent->m_pitch = pitch;
     parent->m_yaw = yaw;
     parent->m_accVel = linearAcc;
-    //calculate body angle velocity and save data in QuadRobot class
+    //calculate body angluar speed in world NED frame and save data in QuadRobot class
     yawVel = (yaw - preyaw) * m_factorTime;
     pitchVel = (pitch - prepitch) * m_factorTime;
     rollVel = (roll - preroll) * m_factorTime;
-    parent-> m_angleVel.X() = -sin(yaw) * pitchVel + cos(yaw)*cos(pitch)*rollVel;
-    parent->m_angleVel.Y() = cos(yaw)*pitchVel + sin(yaw)*cos(pitch)*rollVel;
-    parent->m_angleVel.Z() = yawVel - sin(pitch)*rollVel;
+    parent-> m_angleVel.x() = -sin(yaw) * pitchVel + cos(yaw)*cos(pitch)*rollVel;
+    parent->m_angleVel.y() = cos(yaw)*pitchVel + sin(yaw)*cos(pitch)*rollVel;
+    parent->m_angleVel.z() = yawVel - sin(pitch)*rollVel;
     //Save previous attitude angles in sensor
     preroll = roll;
     prepitch = pitch;

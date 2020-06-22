@@ -8,7 +8,7 @@ set(GAZEBOMSG_SRC_DIR source/gazebo/message)
 set(GAZEBOSENSOR_SRC_DIR source/gazebo/sensor)
 set(MATLABMSG_SRC_DIR source/matlab/message)
 set(DS_SRC_DIR source/ds)
-set(ROBOT_SRC source/main.cpp  source/quadrupedrobot.cpp source/limbModel.cpp
+set(ROBOT_SRC source/main.cpp  source/quadrupedrobot.cpp source/limbModel.cpp source/mpc.cpp source/gait.cpp source/gnuplot.cpp
         ${GAZEBOSENSOR_SRC_DIR}/sensor.cpp
         ${GAZEBOMSG_SRC_DIR}/jointsensors.pb.cc
         ${GAZEBOMSG_SRC_DIR}/contactsensors.pb.cc
@@ -23,16 +23,21 @@ set(ROBOT_SRC source/main.cpp  source/quadrupedrobot.cpp source/limbModel.cpp
 #include_directories(${INC_DIR_CX})
 #link_directories(${LINK_DIR_CX})
 
-set(INC_DIR_CX  ".")
+set(INC_DIR_CX  "."  "/home/cx/3.2/include")
+set(LINK_DIR "/home/cx/3.2/libs")
 include_directories(${INC_DIR_CX})
+link_directories(${LINK_DIR})
 
 # Find Gazebo
 find_package(gazebo REQUIRED)
 include_directories(${GAZEBO_INCLUDE_DIRS})
 link_directories(${GAZEBO_LIBRARY_DIRS})
 
+# Eigen support
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 add_executable(quadrupedrobot ${ROBOT_SRC})
-target_link_libraries(quadrupedrobot ${GAZEBO_LIBRARIES})
+target_link_libraries(quadrupedrobot ${GAZEBO_LIBRARIES} qpOASES )
 
 add_library(qrINSmessage_plugin SHARED "source/gazebo/qrINSmessage_plugin/qrINSmessage.cpp")
 target_link_libraries(qrINSmessage_plugin ${GAZEBO_LIBRARIES})

@@ -1,11 +1,15 @@
 #include "include/limbModel.hh"
-#include <math.h>
+#include "include/ds/traprocgen.hh"
+#include <cmath>
+
+using namespace std;
+using namespace Eigen;
 
 LimbModel::LimbModel(u_char numOfLink)
 {
     if(numOfLink > 3 || numOfLink == 0 )
     {
-        std::cout << "Number of Links greater than 3 or equalling zero is forbidden !" << std::endl ;
+        cout << "Number of Links greater than 3 or equalling zero is forbidden !" << endl ;
         return;
     }
     m_numOfLink = numOfLink;
@@ -66,12 +70,12 @@ bool LimbModel::ModifyLinkParam(u_char index,  double length, double cop, double
 {
     if(!m_isvalid)
     {
-        std::cout << "Error in function ModifyLinkParam : LimbModel has not been initialized !" << std::endl ;
+        cout << "Error in function ModifyLinkParam : LimbModel has not been initialized !" << endl ;
         return false;
     }
-    if( (index == 0 &&  index > m_numOfLink) || length < 0 || cop < 0 || mass < 0 || inertial.Determinant() < 0)
+    if( (index == 0 &&  index > m_numOfLink) || length < 0 || cop < 0 || mass < 0 || inertial.determinant() < 0)
     {
-        std::cout << "Error in function ModifyLinkParam : check values of input parameters " << std::endl ;
+        cout << "Error in function ModifyLinkParam : check values of input parameters " << endl ;
         return false;
     }
     m_prod[index - 1]->ModifyLength(length);
@@ -89,6 +93,8 @@ void LimbModel::Step()
     CoordinateTransform();
     /*Calculating dynamics process*/
     DynamicsCalFootContactForceWithoutAcc();
+    /*Update foot state*/
+    EstimateFootState();
 }
 
 void LimbModel::CalMainPointPos()
@@ -98,30 +104,30 @@ void LimbModel::CalMainPointPos()
     double Ax = 0;
     double Ay = (-1)*rod1length*sin(m_thetaPos[0]);
     double Az = rod1length*cos(m_thetaPos[0]);
-    m_pointPos[0].X() = Ax;
-    m_pointPos[0].Y() = Ay;
-    m_pointPos[0].Z() = Az;
+    m_pointPos[0].x() = Ax;
+    m_pointPos[0].y() = Ay;
+    m_pointPos[0].z() = Az;
     //Point B
     double rod2length = m_prod[1]->GetLength();
     double Bx = Ax + rod2length * sin(m_thetaPos[1]);
     double By = Ay + rod2length * sin(m_thetaPos[0]) * cos(m_thetaPos[1]);
     double Bz = Az - rod2length * cos(m_thetaPos[0]) * cos(m_thetaPos[1]);
-    m_pointPos[1].X() = Bx;
-    m_pointPos[1].Y() = By;
-    m_pointPos[1].Z() = Bz;
-    //Point C
+    m_pointPos[1].x() = Bx;
+    m_pointPos[1].y() = By;
+    m_pointPos[1].z() = Bz;
+    //Point C, i.e., Foot point
     double rod3length = m_prod[2]->GetLength();
     double Cx = Bx - rod3length * sin(m_thetaPos[1] - m_thetaPos[2]);
     double Cy = By - rod3length * sin(m_thetaPos[0]) * cos(m_thetaPos[1] - m_thetaPos[2]);
     double Cz = Bz + rod3length * cos(m_thetaPos[0]) * cos(m_thetaPos[1] - m_thetaPos[2]);
-    m_pointPos[2].X() = Cx;
-    m_pointPos[2].Y() = Cy;
-    m_pointPos[2].Z() = Cz;
+    m_pointPos[2].x() = Cx;
+    m_pointPos[2].y() = Cy;
+    m_pointPos[2].z() = Cz;
 }
 
 bool LimbModel::InvCalTheta1and3Then2(const Vector3d& position, TreeNode<double>* proot )
 {
-    double cx =position.X() , cy =position.Y() , cz = position.Z();
+    double cx =position.x() , cy =position.y() , cz = position.z();
     double l1 = m_prod[0]->GetLength(), l2 = m_prod[1]->GetLength(), l3 = m_prod[2]->GetLength();
    //theta1, its range is from -PI/2 to PI/2
    //calculate theta3 parameters, its range is from PI to 2*PI
@@ -256,9 +262,9 @@ bool LimbModel::CalInvertKinetics(const Vector3d& position)
 void LimbModel::CoordinateTransform()
 {
     double theta1 = GetThetaPos(1), theta2 = GetThetaPos(2), theta3 = GetThetaPos(3);
-    R_BtoBody.Set(cos(-theta2+theta3), 0, sin(-theta2+theta3), \
-                               sin(theta1)*sin(-theta2+theta3), cos(theta1), -sin(theta1)*cos(-theta2+theta3), \
-                               -cos(theta1)*sin(-theta2+theta3), sin(theta1), cos(theta1)*cos(-theta2+theta3));
+    R_BtoBody <<           cos(-theta2+theta3),                                0,                         sin(-theta2+theta3),
+                               sin(theta1)*sin(-theta2+theta3),          cos(theta1),        -sin(theta1)*cos(-theta2+theta3),
+                               -cos(theta1)*sin(-theta2+theta3),         sin(theta1),        cos(theta1)*cos(-theta2+theta3);
 }
 
 void LimbModel::DynamicsCalFootContactForce()
@@ -267,9 +273,9 @@ void LimbModel::DynamicsCalFootContactForce()
     double W[3][BASEPARASIZE];
     double l1 = GetLink()[0]->GetLength(), l2 = GetLink()[1]->GetLength(), l3 = GetLink()[2]->GetLength();
         //Gravity ccelerated velocity in x,y,z axis.
-    double ax = -m_originAccVel.X();
-    double ay = -m_originAccVel.Y();
-    double az = -m_originAccVel.Z();
+    double ax = -m_originAccVel.x();
+    double ay = -m_originAccVel.y();
+    double az = -m_originAccVel.z();
     //Dynamics equation : Mq..+Cq.+G = tau + g_ext . The result is stored in de_lf[3] (dynamics equation left side)
     double de_lfside[3] = {0,0,0};
         //Fill the W matrix based on the joints' trajectories.
@@ -286,7 +292,7 @@ void LimbModel::DynamicsCalFootContactForce()
     W[0][8] = az*sin(theta1);
     W[0][9] = 0;
     W[0][10] = dtheta1;
-    W[0][11] = sgn(dtheta1);
+    W[0][11] = MyMathFunc::sgn(dtheta1);
 
     W[0][12] = ddtheta1*pow(cos(theta2),2)-dtheta1*dtheta2*sin(2*theta2);
     W[0][13] = 0;
@@ -320,7 +326,7 @@ void LimbModel::DynamicsCalFootContactForce()
         de_lfside[0] += W[0][i]*baseParameters[0][i];
     }
     //average filter and low pass filter for generalized force
-    generalized_cfFilterBuffer[0][(index_GFFB+1)%GFFILTERSIZE] = filter_gf*generalized_cfFilterBuffer[0][index_GFFB%GFFILTERSIZE]+(1-filter_gf)*(de_lfside[0] - generalizedJointWrench.X());
+    generalized_cfFilterBuffer[0][(index_GFFB+1)%GFFILTERSIZE] = filter_gf*generalized_cfFilterBuffer[0][index_GFFB%GFFILTERSIZE]+(1-filter_gf)*(de_lfside[0] - generalizedJointWrench.x());
     double gf_buffer0 = 0;
     for(int i = 0; i < GFFILTERSIZE; i++)
     {
@@ -343,7 +349,7 @@ void LimbModel::DynamicsCalFootContactForce()
     W[1][20] = -l1*pow(dtheta1,2)*sin(theta2)-az*cos(theta1)*sin(theta2);
     W[1][21] = 0;
     W[1][22] = dtheta2;
-    W[1][23] = sgn(dtheta2);
+    W[1][23] = MyMathFunc::sgn(dtheta2);
 
     W[1][24] = -0.5*pow(dtheta1,2)*sin(2*(theta3-theta2));
     W[1][25] = ddtheta2-ddtheta3;
@@ -366,7 +372,7 @@ void LimbModel::DynamicsCalFootContactForce()
         de_lfside[1] += W[1][i]*baseParameters[1][i];
     }
     //average filter and low pass filter for generalized force
-    generalized_cfFilterBuffer[1][(index_GFFB+1)%GFFILTERSIZE] = filter_gf*generalized_cfFilterBuffer[1][index_GFFB%GFFILTERSIZE]+(1-filter_gf)*(de_lfside[1] - generalizedJointWrench.Y());
+    generalized_cfFilterBuffer[1][(index_GFFB+1)%GFFILTERSIZE] = filter_gf*generalized_cfFilterBuffer[1][index_GFFB%GFFILTERSIZE]+(1-filter_gf)*(de_lfside[1] - generalizedJointWrench.y());
     double gf_buffer1 = 0;
     for(int i = 0; i < GFFILTERSIZE; i++)
     {
@@ -389,7 +395,7 @@ void LimbModel::DynamicsCalFootContactForce()
     W[2][32] = (l1-l2*cos(theta2))*pow(dtheta1,2)*sin(theta3-theta2)-l2*pow(dtheta2,2)*sin(theta3) + l2*cos(theta3)*ddtheta2 +az*cos(theta1)*sin(theta3-theta2);
     W[2][33] = 0;
     W[2][34] = dtheta3;
-    W[2][35] = sgn(dtheta3);
+    W[2][35] = MyMathFunc::sgn(dtheta3);
 
          //generalized contact force = H(q,dq,ddq)*basePara - F_torque
     for(int i = 24; i < BASEPARASIZE; i++)
@@ -397,7 +403,7 @@ void LimbModel::DynamicsCalFootContactForce()
         de_lfside[2] += W[2][i]*baseParameters[2][i];
     }
     //average filter and low pass filter for generalized force
-    generalized_cfFilterBuffer[2][(index_GFFB+1)%GFFILTERSIZE] = filter_gf*generalized_cfFilterBuffer[2][index_GFFB%GFFILTERSIZE]+(1-filter_gf)*(de_lfside[2] - generalizedJointWrench.Z());
+    generalized_cfFilterBuffer[2][(index_GFFB+1)%GFFILTERSIZE] = filter_gf*generalized_cfFilterBuffer[2][index_GFFB%GFFILTERSIZE]+(1-filter_gf)*(de_lfside[2] - generalizedJointWrench.z());
     double gf_buffer2 = 0;
     for(int i = 0; i < GFFILTERSIZE; i++)
     {
@@ -410,17 +416,18 @@ void LimbModel::DynamicsCalFootContactForce()
                    P21 = l2*cos(theta2)-l3*cos(theta2-theta3), P22 = -sin(theta1)*(l2*sin(theta2)-l3*sin(theta2-theta3)), \
                    P23 = cos(theta1)*(l2*sin(theta2)-l3*sin(theta2-theta3)), P31 = l3*cos(theta2-theta3),  \
                    P32 = -l3*sin(theta1)*sin(theta2-theta3), P33 = l3*cos(theta1)*sin(theta2-theta3);
-    Matrix3d A(P11,P12,P13,P21,P22,P23,P31,P32,P33);
+    Matrix3d A;
+    A << P11,P12,P13,P21,P22,P23,P31,P32,P33;
     Vector3d g_cf(generalized_cf[0], generalized_cf[1], generalized_cf[2]);
     //Contact force average filter
-    contactforce_FilterBuffer[(index_CFFB+1)%CFFILTERSIZE] = filter_cf*contactforce_FilterBuffer[index_CFFB%CFFILTERSIZE]+(1-filter_cf)*A.Inverse()*g_cf;
+    contactforce_FilterBuffer[(index_CFFB+1)%CFFILTERSIZE] = filter_cf*contactforce_FilterBuffer[index_CFFB%CFFILTERSIZE]+(1-filter_cf)*A.inverse()*g_cf;
     Vector3d cf(0,0,0);
     for(int i = 0; i < CFFILTERSIZE; i++)
     {
          cf += contactforce_FilterBuffer[i]/CFFILTERSIZE;
     }
-    if(cf.Z() > 0)
-        cf.Z() = 0;
+    if(cf.z() > 0)
+        cf.z() = 0;
     contactforce_P = cf;
     //contact force and generalized force filter buffer index counter
     index_CFFB++;
@@ -432,9 +439,9 @@ void LimbModel::DynamicsCalFootContactForceWithoutAcc()
     double L[3][BASEPARASIZE];
     double l1 = GetLink()[0]->GetLength(), l2 = GetLink()[1]->GetLength(), l3 = GetLink()[2]->GetLength();
         //Gravity ccelerated velocity in x,y,z axis.
-    double ax = -m_originAccVel.X();
-    double ay = -m_originAccVel.Y();
-    double az = -m_originAccVel.Z();
+    double ax = -m_originAccVel.x();
+    double ay = -m_originAccVel.y();
+    double az = -m_originAccVel.z();
     //Dynamics equation : int(Mq..+Cq.+G) = int(tau + g_ext) . The result is stored in de_lf[3] (dynamics equation left side)
     double de_lfside[3] = {0,0,0};
         //Fill the W matrix based on the joints' trajectories.
@@ -465,7 +472,7 @@ void LimbModel::DynamicsCalFootContactForceWithoutAcc()
     L[0][9] = 0;
     L_Integralsum[0][10] += m_steptime*dtheta1;
     L[0][10] = L_Integralsum[0][10];
-    L_Integralsum[0][11] += m_steptime*sgn(dtheta1);
+    L_Integralsum[0][11] += m_steptime*MyMathFunc::sgn(dtheta1);
     L[0][11] = L_Integralsum[0][11];
 
     L[0][12] = pow(cos(theta2),2)*dtheta1-pow(cos(theta2_t0),2)*dtheta1_t0;
@@ -525,7 +532,7 @@ void LimbModel::DynamicsCalFootContactForceWithoutAcc()
     L[0+1][21] = 0;
     L_Integralsum[1][22] += m_steptime*dtheta2;
     L[0+1][22] = L_Integralsum[1][22];
-    L_Integralsum[1][23] += m_steptime*sgn(dtheta2);
+    L_Integralsum[1][23] += m_steptime*MyMathFunc::sgn(dtheta2);
     L[0+1][23] = L_Integralsum[1][23];
 
     L_Integralsum[1][24] += m_steptime*(-0.5*pow(dtheta1,2)*sin(2*theta3-2*theta2));
@@ -574,13 +581,13 @@ void LimbModel::DynamicsCalFootContactForceWithoutAcc()
     L[0+2][33] = 0;
     L_Integralsum[2][34] += m_steptime*dtheta3;
     L[0+2][34] = L_Integralsum[2][34];
-    L_Integralsum[2][35] += m_steptime*sgn(dtheta3);
+    L_Integralsum[2][35] += m_steptime*MyMathFunc::sgn(dtheta3);
     L[0+2][35] = L_Integralsum[2][35];
 
     //torque and contact force integral
-    torque_integral[0] += generalizedJointWrench.X()*m_steptime;
-    torque_integral[1] += generalizedJointWrench.Y()*m_steptime;
-    torque_integral[2] += generalizedJointWrench.Z()*m_steptime;
+    torque_integral[0] += generalizedJointWrench.x()*m_steptime;
+    torque_integral[1] += generalizedJointWrench.y()*m_steptime;
+    torque_integral[2] += generalizedJointWrench.z()*m_steptime;
 
      //generalized contact force = H(q,dq,ddq)*basePara - F_torque
     for(int i = 0; i < BASEPARASIZE; i++)
@@ -634,18 +641,43 @@ void LimbModel::DynamicsCalFootContactForceWithoutAcc()
                    P21 = l2*cos(theta2)-l3*cos(theta2-theta3), P22 = -sin(theta1)*(l2*sin(theta2)-l3*sin(theta2-theta3)), \
                    P23 = cos(theta1)*(l2*sin(theta2)-l3*sin(theta2-theta3)), P31 = l3*cos(theta2-theta3),  \
                    P32 = -l3*sin(theta1)*sin(theta2-theta3), P33 = l3*cos(theta1)*sin(theta2-theta3);
-    Matrix3d A(P11,P12,P13,P21,P22,P23,P31,P32,P33);
+    Matrix3d A;
+    A << P11,P12,P13,P21,P22,P23,P31,P32,P33;
+    Jac  << P11,P12,P13,P21,P22,P23,P31,P32,P33;
     Vector3d g_cf(gcf_eval[0], gcf_eval[1], gcf_eval[2]);
     //Contact force low pass and average filter
-    contactforce_FilterBuffer[(index_CFFB+1)%CFFILTERSIZE] = filter_cf*contactforce_FilterBuffer[index_CFFB%CFFILTERSIZE]+(1-filter_cf)*A.Inverse()*g_cf;
+    contactforce_FilterBuffer[(index_CFFB+1)%CFFILTERSIZE] = filter_cf*contactforce_FilterBuffer[index_CFFB%CFFILTERSIZE]+(1-filter_cf)*A.inverse()*g_cf;
     Vector3d cf(0,0,0);
     for(int i = 0; i < CFFILTERSIZE; i++)
     {
          cf += contactforce_FilterBuffer[i]/CFFILTERSIZE;
     }
-    if(cf.Z() > 0)
-        cf.Z() = 0;
+    if(cf.z() > 0)
+        cf.z() = 0;
     contactforce_P = cf;
     index_CFFB++;
     index_GFFB++;
+}
+
+void LimbModel::EstimateFootState()
+{
+    /*Estimate whether foot is in contact state or not.*/
+    static double lowthreshold = 200;
+    double norm = sqrt(pow(contactforce_P.z(),2));
+    if( norm > lowthreshold)
+    {
+        limb_state = LIMB_STATE::SUPPORT;
+        lowthreshold = 100;
+    }
+    else
+    {
+        limb_state = LIMB_STATE::SWING;
+        lowthreshold = 300;
+    }
+
+}
+
+LimbModel::LIMB_STATE LimbModel::GetFootState()
+{
+    return limb_state;
 }
