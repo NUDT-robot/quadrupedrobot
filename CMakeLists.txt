@@ -8,7 +8,7 @@ set(GAZEBOMSG_SRC_DIR source/gazebo/message)
 set(GAZEBOSENSOR_SRC_DIR source/gazebo/sensor)
 set(MATLABMSG_SRC_DIR source/matlab/message)
 set(DS_SRC_DIR source/ds)
-set(ROBOT_SRC source/main.cpp  source/quadrupedrobot.cpp source/limbModel.cpp source/mpc.cpp source/gait.cpp source/gnuplot.cpp
+set(ROBOT_SRC source/main.cpp  source/quadrupedrobot.cpp source/limbModel.cpp source/balanceController.cpp source/gait.cpp source/gnuplot.cpp
         ${GAZEBOSENSOR_SRC_DIR}/sensor.cpp
         ${GAZEBOMSG_SRC_DIR}/jointsensors.pb.cc
         ${GAZEBOMSG_SRC_DIR}/contactsensors.pb.cc
@@ -23,10 +23,11 @@ set(ROBOT_SRC source/main.cpp  source/quadrupedrobot.cpp source/limbModel.cpp so
 #include_directories(${INC_DIR_CX})
 #link_directories(${LINK_DIR_CX})
 
-set(INC_DIR_CX  "."  "/home/cx/3.2/include")
-set(LINK_DIR "/home/cx/3.2/libs")
+set(INC_DIR_CX  "."  "~/3.2/include")
+set(LINK_DIR "~/3.2/libs")
 include_directories(${INC_DIR_CX})
 link_directories(${LINK_DIR})
+
 
 # Find Gazebo
 find_package(gazebo REQUIRED)

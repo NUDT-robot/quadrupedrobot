@@ -3,12 +3,12 @@
 #include <cmath>
 #include <qpOASES.hpp>
 
-#include "include/mpc.hh"
+#include "include/balanceController.hh"
 #include "include/ds/traprocgen.hh"
 
 using namespace Eigen;
 using namespace std;
-MPCController::MPCController(int n_F) : solution(3*n_F), solution_UniformForceMPC(3*n_F), solution_PDCompensator(3*n_F), supporting(n_F)
+BalanceController::BalanceController(int n_F) : solution(3*n_F), solution_UniformForceMPC(3*n_F), solution_PDCompensator(3*n_F), supporting(n_F)
 {
     nF = n_F;
     gravity << 0, 0, 9.8;
@@ -20,12 +20,12 @@ MPCController::MPCController(int n_F) : solution(3*n_F), solution_UniformForceMP
     ResetPIDCompensationParameters();
 }
 
-MPCController::~MPCController()
+BalanceController::~BalanceController()
 {
     delete [] pnF;
 }
 
-void MPCController::Init(const Matrix<double, 15, 1> X_ref, const Vector3d nr[] , const int k_steps, const Eigen::Vector3d& atti_weights, const Eigen::Vector3d& p_weights,
+void BalanceController::Init(const Matrix<double, 15, 1> X_ref, const Vector3d nr[] , const int k_steps, const Eigen::Vector3d& atti_weights, const Eigen::Vector3d& p_weights,
                          const Eigen::Vector3d& anglespeed_weights, const Eigen::Vector3d& velocity_weights, const double f_weights, const double robot_mass)
 {
     Xref = X_ref;
@@ -51,7 +51,7 @@ void MPCController::Init(const Matrix<double, 15, 1> X_ref, const Vector3d nr[] 
     K = MatrixXd::Identity(12, 12)*force_weights;
 }
 
-void MPCController::Solve(VectorXd X0, Vector3d rn[])
+void BalanceController::Solve(VectorXd X0, Vector3d rn[])
 {
     double* m = new double[nF];
     for(int i = 0; i < nF; i++)
@@ -180,7 +180,7 @@ void MPCController::Solve(VectorXd X0, Vector3d rn[])
     delete [] m;
 }
 
-void MPCController::SolveAddPIDCompensation(VectorXd X0, Vector3d rn[])
+void BalanceController::SolveAddPIDCompensation(VectorXd X0, Vector3d rn[])
 {
 ///////////////////////////////////
 //    ktau = 3e3;
@@ -314,22 +314,22 @@ void MPCController::SolveAddPIDCompensation(VectorXd X0, Vector3d rn[])
     delete [] pTausol;
 }
 
-VectorXd MPCController::GetSolution()
+VectorXd BalanceController::GetSolution()
 {
     return solution;
 }
 
-VectorXd MPCController::GetSolutionUniformForceMPC()
+VectorXd BalanceController::GetSolutionUniformForceMPC()
 {
     return solution_UniformForceMPC;
 }
 
-VectorXd MPCController::GetSolutionPDCompensator()
+VectorXd BalanceController::GetSolutionPDCompensator()
 {
     return solution_PDCompensator;
 }
 
-void MPCController::CalculateDCM(Vector3d angle)
+void BalanceController::CalculateDCM(Vector3d angle)
 {
     Matrix3d alpha_rolln, alpha_pitchn, alpha_yawn;
     alpha_rolln << 1,            0,                      0,
@@ -346,17 +346,17 @@ void MPCController::CalculateDCM(Vector3d angle)
     BodytoWorldDCM.noalias() = alpha_yawn*alpha_pitchn*alpha_rolln;
 }
 
-void MPCController::SetXref(const VectorXd& xref)
+void BalanceController::SetXref(const VectorXd& xref)
 {
     Xref = xref;
 }
 
-VectorXd MPCController::GetXref()
+VectorXd BalanceController::GetXref()
 {
     return Xref;
 }
 
-void MPCController::ResetPIDCompensationParameters()
+void BalanceController::ResetPIDCompensationParameters()
 {
     // Initial stand parameters value
     // kF = 6e3*Matrix3d::Identity();
@@ -372,7 +372,7 @@ void MPCController::ResetPIDCompensationParameters()
     alphaF_regularization = 1e-3;
     alphaTau_regularization = 5e-4;
 }
-void MPCController::SetMode(MODE mode)
+void BalanceController::SetMode(MODE mode)
 {
     ResetPIDCompensationParameters();
     switch (mode)

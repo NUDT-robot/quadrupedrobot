@@ -981,7 +981,7 @@ void QuadRobot::WalkGait(const Vector3d& attitude_direction, const Vector3d& vel
     gaig.SetFoursStandTime(fourstandtime);
 
     mpc.Init(X_ref, r, 10);
-    mpc.SetMode(MPCController::MODE::WALK);
+    mpc.SetMode(BalanceController::MODE::WALK);
 }
 
 void QuadRobot::TrotGait(const Vector3d& attitude_direction, const Vector3d& velocity)
@@ -1008,7 +1008,7 @@ void QuadRobot::TrotGait(const Vector3d& attitude_direction, const Vector3d& vel
     gaig.SetFoursStandTime(50);//
 
     mpc.Init(X_ref, r, 10);
-    mpc.SetMode(MPCController::MODE::AttitudeVelocity);
+    mpc.SetMode(BalanceController::MODE::AttitudeVelocity);
 }
 
 void QuadRobot::PronkGait(const Eigen::Vector3d& attitude_direction, const Eigen::Vector3d& velocity)
@@ -1029,7 +1029,7 @@ void QuadRobot::PronkGait(const Eigen::Vector3d& attitude_direction, const Eigen
     gaig.init(GaitGenerator::GAIT::PRONK, initialposition, 0.1, supporttime, swingtime);
 
     mpc.Init(X_ref, r, 10);
-    mpc.SetMode(MPCController::MODE::JUMP);
+    mpc.SetMode(BalanceController::MODE::JUMP);
 }
 
 void QuadRobot::BoundGait(const Eigen::Vector3d& attitude_direction, const Eigen::Vector3d& velocity)
@@ -1050,7 +1050,7 @@ void QuadRobot::BoundGait(const Eigen::Vector3d& attitude_direction, const Eigen
     gaig.init(GaitGenerator::GAIT::BOUND, initialposition, 0.08, supporttime, swingtime);
     gaig.SetFoursStandTime(200);
     mpc.Init(X_ref, r, 10);
-    mpc.SetMode(MPCController::MODE::BOUND);
+    mpc.SetMode(BalanceController::MODE::BOUND);
 }
 
 void QuadRobot::IdentificationCOMPosition()
@@ -1542,7 +1542,7 @@ void QuadRobot::IdentifyInertialParametersUsingNoAccDynamics()
     ReleaseLock();
 }
 
-/*void QuadRobot::MPCController(Eigen::Vector3d in_velocity, Eigen::Vector3d in_angularspeed, int k_steps)
+/*void QuadRobot::BalanceController(Eigen::Vector3d in_velocity, Eigen::Vector3d in_angularspeed, int k_steps)
 {
     double robotmass = 85, mu = 0.6, fz_high = -100, fz_low= -1000,  timestep = 0.001,  force_weights = 1e-6; //TODO
 // 1. Construct Matrix
@@ -1833,7 +1833,7 @@ void QuadRobot::MpcMode(VectorXd X_ref)
     }
 
     mpc.Init(X_ref, rn, 10); // No leg mass, 75kg.
-    mpc.SetMode(MPCController::MODE::AttitudePosition);
+    mpc.SetMode(BalanceController::MODE::AttitudePosition);
     SetState(ROBOT_STATE::MPC);
 }
 

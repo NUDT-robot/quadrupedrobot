@@ -18,7 +18,7 @@
 #include "ds/traprocgen.hh"
 #include "limbModel.hh"
 #include "config.hh"
-#include "mpc.hh"
+#include "balanceController.hh"
 #include "gait.hh"
 #include "gnuplot.hh"
 
@@ -157,7 +157,7 @@ private:
     //Target positions of PID, indexes order is fl, fr, bl, br. Torque applied to joints, indexes order is fl, fr, bl, br.
     double ctrl_jointsPos[12], ctrl_jointsTor[12];
 /*Controller and Gait generator*/
-    MPCController mpc;
+    BalanceController mpc;
     GaitGenerator gaig;
     Eigen::Vector4i supporting;
 /*Other members*/

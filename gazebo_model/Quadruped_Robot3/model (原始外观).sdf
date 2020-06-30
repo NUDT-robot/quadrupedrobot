@@ -133,23 +133,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''>-0.095 0 -0.002 3.14 -0 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L1.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.0595</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -231,23 +231,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-       <pose frame=''> -0.008 0 -0.058 0.003 1.57 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L2.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.27</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.4 0.4 0.4 1</ambient>
-          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -329,23 +329,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''>-0.02 0.02 -0.07 -1.57 -0 3.14</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L3.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.335</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.15 0.15 0.15 1</ambient>
-          <diffuse>0.15 0.15 0.15 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -435,24 +435,24 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''> 0 0 -0.3 -1.57 0 -1.57</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			 <uri>model://Quadruped_Robot3/meshes/Body.STL</uri>
-		  </mesh>
+          <box>
+            <size>1.15 0.44 0.315</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PaintedWall</name>
           </script>
           <emissive>0 0 0 1</emissive>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.1 0.1 0.1 1</ambient>
-          <diffuse>0.1 0.1 0.1 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
         </material>
         <transparency>0</transparency>
@@ -533,23 +533,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''>-0.095 0 -0.002 3.14 -0 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L1.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.0595</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -631,23 +631,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''> -0.008 0 -0.058 0.003 1.57 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L2.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.27</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/White</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.4 0.4 0.4 1</ambient>
-          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -729,23 +729,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''>-0.02 0.02 -0.07 -1.57 -0 3.14</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L3.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.335</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.15 0.15 0.15 1</ambient>
-          <diffuse>0.15 0.15 0.15 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -835,23 +835,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''>-0.095 0 -0.002 3.14 -0 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L1.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.0595</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -933,23 +933,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''> -0.008 0 -0.058 0.003 1.57 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L2.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.27</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.4 0.4 0.4 1</ambient>
-          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -1031,23 +1031,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''>-0.02 0.02 -0.07 -1.57 -0 3.14</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L3.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.335</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.15 0.15 0.15 1</ambient>
-          <diffuse>0.15 0.15 0.15 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -1137,23 +1137,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''>-0.095 0 -0.002 3.14 -0 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L1.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.0595</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -1235,23 +1235,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''> -0.008 0 -0.058 0.003 1.57 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L2.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.27</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.4 0.4 0.4 1</ambient>
-          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
@@ -1333,23 +1333,23 @@
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
       <visual name='visual'>
-        <pose frame=''>-0.02 0.02 -0.07 -1.57 -0 3.14</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
-          <mesh>
-			<uri> model://Quadruped_Robot3/meshes/L3.STL </uri>
-		  </mesh>
+          <box>
+            <size>0.05 0.05 0.335</size>
+          </box>
         </geometry>
         <material>
           <lighting>1</lighting>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Grey</name>
+            <name>Gazebo/PioneerBody</name>
           </script>
           <shader type='vertex'>
             <normal_map>__default__</normal_map>
           </shader>
-          <ambient>0.15 0.15 0.15 1</ambient>
-          <diffuse>0.15 0.15 0.15 1</diffuse>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>

@@ -24,14 +24,14 @@
      * InertialInBody: Ic, i.e., inertial matrix according to center of mass.
  *
  * Application:
- * 1. Build up a MPCController class object
+ * 1. Build up a BalanceController class object
  * 2. Call member function Init.
  * 3. Call member function SetMode to choose which variables are controlled.
  * 4. Call member function SetActivity to notify the class which limb is used to be supporting.
  * 5. Call member function Solve or SolveAddPIDCompensation
  *
 */
-class MPCController
+class BalanceController
 {
     int nF;
     int ksteps;
@@ -86,8 +86,8 @@ public:
         BOUND
     };
 public:
-    MPCController(int nF);
-    ~MPCController();
+    BalanceController(int nF);
+    ~BalanceController();
     void Init(const Eigen::Matrix<double, 15, 1> X_ref, const Eigen::Vector3d nr[] , const int k_steps, const Eigen::Vector3d& atti_weights= Eigen::Vector3d::Identity(), const Eigen::Vector3d& p_weights= Eigen::Vector3d::Identity(),
               const Eigen::Vector3d& anglespeed_weights = Eigen::Vector3d::Identity(), const Eigen::Vector3d& velocity_weights = Eigen::Vector3d::Identity(), const double f_weights = 1e-6, const double robot_mass = 100);
     //TODO, return value
